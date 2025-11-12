@@ -1,0 +1,25 @@
+-- V3__create_sequences.sql
+DECLARE
+    v_count NUMBER;
+BEGIN
+    SELECT COUNT(*) INTO v_count FROM user_sequences WHERE sequence_name = 'USERS_SEQ';
+    IF v_count = 0 THEN
+        EXECUTE IMMEDIATE 'CREATE SEQUENCE USERS_SEQ START WITH 1000 INCREMENT BY 1 NOCACHE';
+    END IF;
+
+    SELECT COUNT(*) INTO v_count FROM user_sequences WHERE sequence_name = 'POSTS_SEQ';
+    IF v_count = 0 THEN
+        EXECUTE IMMEDIATE 'CREATE SEQUENCE POSTS_SEQ START WITH 1000 INCREMENT BY 1 NOCACHE';
+    END IF;
+
+    SELECT COUNT(*) INTO v_count FROM user_sequences WHERE sequence_name = 'RATINGS_SEQ';
+    IF v_count = 0 THEN
+        EXECUTE IMMEDIATE 'CREATE SEQUENCE RATINGS_SEQ START WITH 1000 INCREMENT BY 1 NOCACHE';
+    END IF;
+
+    SELECT COUNT(*) INTO v_count FROM user_sequences WHERE sequence_name = 'COMMENTS_SEQ';
+    IF v_count = 0 THEN
+        EXECUTE IMMEDIATE 'CREATE SEQUENCE COMMENTS_SEQ START WITH 1000 INCREMENT BY 1 NOCACHE';
+    END IF;
+END;
+/
