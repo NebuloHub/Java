@@ -1,6 +1,7 @@
 package com.nebulohub.domain.post;
 
 // import com.nebulohub.domain.comment.Comment;
+import com.nebulohub.domain.comment.Comment;
 import com.nebulohub.domain.rating.Rating; // <-- IMPORT ADDED
 import com.nebulohub.domain.user.User;
 import jakarta.persistence.*;
@@ -69,6 +70,6 @@ public class Post {
      * **CASCADE DELETE**
      * When this Post is deleted, all associated Comments will also be deleted.
      */
-    // @OneToMany(mappedBy = "post", cascade = CascadeType.REMOVE, orphanRemoval = true)
-    // private List<Comment> comments;
+     @OneToMany(mappedBy = "post", cascade = CascadeType.REMOVE, orphanRemoval = true)
+     private List<Comment> comments;
 }

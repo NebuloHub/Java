@@ -2,6 +2,7 @@ package com.nebulohub.domain.user;
 
 import com.nebulohub.domain.post.Post; // <-- IMPORT ADDED
 import com.nebulohub.domain.rating.Rating;
+import com.nebulohub.domain.comment.Comment;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -69,8 +70,8 @@ public class User implements UserDetails {
      @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE, orphanRemoval = true)
      private List<Rating> ratings;
 
-    // @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE, orphanRemoval = true)
-    // private List<Comment> comments;
+     @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE, orphanRemoval = true)
+     private List<Comment> comments;
 
 
     // --- Spring Security UserDetails Implementation ---
