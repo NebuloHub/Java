@@ -1,7 +1,7 @@
 package com.nebulohub.domain.post;
 
 // import com.nebulohub.domain.comment.Comment;
-// import com.nebulohub.domain.rating.Rating;
+import com.nebulohub.domain.rating.Rating; // <-- IMPORT ADDED
 import com.nebulohub.domain.user.User;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
@@ -35,7 +35,7 @@ public class Post {
     @Column(name = "title", nullable = false)
     private String title;
 
-    @Lob // Large Object, maps to CLOB for long text
+    @Lob
     @Column(name = "description")
     private String description;
 
@@ -59,11 +59,11 @@ public class Post {
     private User user;
 
     /**
-     * **CASCADE DELETE**
+     * **NEWLY ADDED RELATIONSHIP**
      * When this Post is deleted, all associated Ratings will also be deleted.
      */
-     @OneToMany(mappedBy = "post", cascade = CascadeType.REMOVE, orphanRemoval = true)
-     private List<Rating> ratings;
+    @OneToMany(mappedBy = "post", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    private List<Rating> ratings;
 
     /**
      * **CASCADE DELETE**

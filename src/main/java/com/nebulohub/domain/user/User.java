@@ -1,6 +1,7 @@
 package com.nebulohub.domain.user;
 
 import com.nebulohub.domain.post.Post; // <-- IMPORT ADDED
+import com.nebulohub.domain.rating.Rating;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
