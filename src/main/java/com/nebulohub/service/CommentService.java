@@ -9,6 +9,8 @@ import com.nebulohub.exception.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.prepost.PreAuthorize; // <-- IMPORT ADDED
+import org.springframework.security.core.Authentication; // <-- IMPORT ADDED
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,14 +22,11 @@ public class CommentService {
     private final UserRepository userRepository;
     private final PostRepository postRepository;
 
-    /**
-     * Creates a new comment.
-     */
     @Transactional
-    public ReadCommentDto create(CreateCommentDto dto) {
-        // 1. Find the author and post
-        User user = userRepository.findById(dto.userId())
-                .orElseThrow(() -> new NotFoundException("User not found with id: " + dto.userId()));
+    public ReadCommentDto create(CreateCommentDto dto, Authentication authentication) {
+        // 1. Get the authenticated user from the token
+        User user = (User) authentication.getPrincipal();
+
         Post post = postRepository.findById(dto.postId())
                 .orElseThrow(() -> new NotFoundException("Post not found with id: " + dto.postId()));
 
@@ -41,43 +40,31 @@ public class CommentService {
         return new ReadCommentDto(savedComment);
     }
 
-    /**
-     * Updates an existing comment.
-     */
     @Transactional
+    @PreAuthorize("hasRole('ADMIN') or @commentRepository.findById(#commentId).get().getUser().getId() == principal.id")
     public ReadCommentDto update(Long commentId, UpdateCommentDto dto) {
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new NotFoundException("Comment not found with id: " + commentId));
-        
-        // TODO: Add authorization check here later.
-        // e.g., if (!comment.getUser().getId().equals(authenticatedUserId)) {
-        //    throw new BusinessException("You can only edit your own comments");
-        // }
+
+        // Authorization is handled by @PreAuthorize
 
         comment.setContent(dto.content());
         Comment updatedComment = commentRepository.save(comment);
         return new ReadCommentDto(updatedComment);
     }
 
-    /**
-     * Deletes a comment by its ID.
-     */
     @Transactional
+    @PreAuthorize("hasRole('ADMIN') or @commentRepository.findById(#commentId).get().getUser().getId() == principal.id")
     public void delete(Long commentId) {
-        Comment comment = commentRepository.findById(commentId)
-                .orElseThrow(() -> new NotFoundException("Comment not found with id: " + commentId));
-        
-        // TODO: Add authorization check here later.
-        // e.g., if (!comment.getUser().getId().equals(authenticatedUserId) && !postAuthorId.equals(authenticatedUserId)) {
-        //    throw new BusinessException("You can only delete your own comments");
-        // }
+        if (!commentRepository.existsById(commentId)) {
+            throw new NotFoundException("Comment not found with id: " + commentId);
+        }
 
-        commentRepository.delete(comment);
+        // Authorization is handled by @PreAuthorize
+
+        commentRepository.deleteById(commentId);
     }
 
-    /**
-     * Gets all comments for a specific post.
-     */
     public Page<ReadCommentDto> getCommentsForPost(Long postId, Pageable pageable) {
         if (!postRepository.existsById(postId)) {
             throw new NotFoundException("Post not found with id: " + postId);
@@ -85,9 +72,6 @@ public class CommentService {
         return commentRepository.findAllByPostIdWithUser(postId, pageable).map(ReadCommentDto::new);
     }
 
-    /**
-     * Gets all comments from a specific user.
-     */
     public Page<ReadCommentDto> getCommentsFromUser(Long userId, Pageable pageable) {
         if (!userRepository.existsById(userId)) {
             throw new NotFoundException("User not found with id: " + userId);

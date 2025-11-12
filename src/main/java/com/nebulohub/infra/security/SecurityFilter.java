@@ -1,16 +1,13 @@
 package com.nebulohub.infra.security;
 
-
+import com.nebulohub.domain.user.UserRepository;
 import com.nebulohub.service.TokenBlacklistService;
 import com.nebulohub.service.TokenService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -19,48 +16,49 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 
+
 @Component
+@RequiredArgsConstructor
 public class SecurityFilter extends OncePerRequestFilter {
 
-    private static final Logger logger = LoggerFactory.getLogger(SecurityFilter.class);
-
-    @Autowired
-    private TokenService tokenService;
-
-
-    @Autowired
-    private TokenBlacklistService tokenBlacklistService;
+    private final TokenService tokenService;
+    private final UserRepository userRepository;
+    private final TokenBlacklistService tokenBlacklistService;
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request,
-                                    HttpServletResponse response,
-                                    FilterChain filterChain) throws ServletException, IOException {
-        try {
-            int number = 2;
-        } catch (Exception ex) {
-            logger.error("Error while trying to authenticate request: " + ex.getMessage(), ex);
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+            throws ServletException, IOException {
+        
+        var token = recoverToken(request);
+
+        if (token != null) {
+            // Check if token is on the blacklist (from logout)
+            if (tokenBlacklistService.isBlacklisted(token)) {
+                // Reject blacklisted token
+                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Token has been invalidated by logout.");
+                return;
+            }
+
+            // Validate token
+            var email = tokenService.validateToken(token);
+            if (email != null) {
+                // Valid Token, load user and set authentication context
+                UserDetails user = userRepository.findByEmail(email)
+                        .orElseThrow(() -> new ServletException("User not found for token subject."));
+                
+                var authentication = new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
+                SecurityContextHolder.getContext().setAuthentication(authentication);
+            }
         }
 
         filterChain.doFilter(request, response);
     }
 
     private String recoverToken(HttpServletRequest request) {
-        // 1) header
-        String authHeader = request.getHeader("Authorization");
-        if (authHeader != null && authHeader.startsWith("Bearer ")) {
-            return authHeader.substring(7).trim();
+        var authHeader = request.getHeader("Authorization");
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return null;
         }
-
-        // 2) cookie fallback
-        Cookie[] cookies = request.getCookies();
-        if (cookies != null) {
-            for (Cookie c : cookies) {
-                if ("OTMAV_TOKEN".equals(c.getName())) {
-                    String value = c.getValue();
-                    if (value != null && !value.isBlank()) return value.trim();
-                }
-            }
-        }
-        return null;
+        return authHeader.substring(7);
     }
 }

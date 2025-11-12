@@ -26,24 +26,25 @@ public class GlobalExceptionHandler {
         return accept.contains("text/html");
     }
 
-    // BUILDER PARA ErrorResponse JSON
-    private ResponseEntity<ErrorResponse> buildJson(HttpStatus status, String error, String message) {
-        ErrorResponse err = new ErrorResponse(status.value(), error, message);
+    // BUILDER PARA ErrorResponse JSON (MODIFIED: Added path)
+    private ResponseEntity<ErrorResponse> buildJson(HttpStatus status, String error, String message, String path) {
+        ErrorResponse err = new ErrorResponse(status.value(), error, message, path);
         return new ResponseEntity<>(err, status);
     }
 
     // ========== NotFoundException ==========
     @ExceptionHandler(NotFoundException.class)
     public Object handleNotFound(NotFoundException ex, HttpServletRequest request) {
+        String path = request.getRequestURI();
         if (wantsHtml(request)) {
             ModelAndView mav = new ModelAndView("error/404");
             mav.addObject("status", HttpStatus.NOT_FOUND.value());
             mav.addObject("error", "Resource not found");
             mav.addObject("message", ex.getMessage());
-            mav.addObject("path", request.getRequestURI());
+            mav.addObject("path", path);
             return mav;
         }
-        return buildJson(HttpStatus.NOT_FOUND, "Resource not found", ex.getMessage());
+        return buildJson(HttpStatus.NOT_FOUND, "Resource not found", ex.getMessage(), path);
     }
 
     // ========== Validation ERRORS ==========
@@ -56,125 +57,150 @@ public class GlobalExceptionHandler {
                 .collect(Collectors.toList());
 
         String message = errors.toString();
+        String path = request.getRequestURI();
 
         if (wantsHtml(request)) {
             ModelAndView mav = new ModelAndView("error/error");
             mav.addObject("status", HttpStatus.BAD_REQUEST.value());
             mav.addObject("error", "Validation failed");
             mav.addObject("message", message);
-            mav.addObject("path", request.getRequestURI());
+            mav.addObject("path", path);
             return mav;
         }
-        return buildJson(HttpStatus.BAD_REQUEST, "Validation failed", message);
+        return buildJson(HttpStatus.BAD_REQUEST, "Validation failed", message, path);
     }
 
     // ========== DuplicateEntry ==========
     @ExceptionHandler(DuplicateEntryException.class)
     public Object handleDuplicateEntry(DuplicateEntryException ex, HttpServletRequest request) {
+        String path = request.getRequestURI();
         if (wantsHtml(request)) {
             ModelAndView mav = new ModelAndView("error/error");
             mav.addObject("status", HttpStatus.CONFLICT.value());
             mav.addObject("error", "Duplicate entry");
             mav.addObject("message", ex.getMessage());
-            mav.addObject("path", request.getRequestURI());
+            mav.addObject("path", path);
             return mav;
         }
-        return buildJson(HttpStatus.CONFLICT, "Duplicate entry", ex.getMessage());
+        return buildJson(HttpStatus.CONFLICT, "Duplicate entry", ex.getMessage(), path);
     }
 
     // ========== AccessDenied ==========
     @ExceptionHandler(AccessDeniedException.class)
     public Object handleAccessDenied(AccessDeniedException ex, HttpServletRequest request) {
+        String path = request.getRequestURI();
         if (wantsHtml(request)) {
             ModelAndView mav = new ModelAndView("error/error");
             mav.addObject("status", HttpStatus.FORBIDDEN.value());
             mav.addObject("error", "Access denied");
             mav.addObject("message", ex.getMessage());
-            mav.addObject("path", request.getRequestURI());
+            mav.addObject("path", path);
             return mav;
         }
-        return buildJson(HttpStatus.FORBIDDEN, "Access denied", ex.getMessage());
+        return buildJson(HttpStatus.FORBIDDEN, "Access denied", ex.getMessage(), path);
     }
 
     // ========== IllegalArgument ==========
     @ExceptionHandler(IllegalArgumentException.class)
     public Object handleIllegalArgument(IllegalArgumentException ex, HttpServletRequest request) {
+        String path = request.getRequestURI();
         if (wantsHtml(request)) {
             ModelAndView mav = new ModelAndView("error/error");
             mav.addObject("status", HttpStatus.BAD_REQUEST.value());
             mav.addObject("error", "Invalid argument");
             mav.addObject("message", ex.getMessage());
-            mav.addObject("path", request.getRequestURI());
+            mav.addObject("path", path);
             return mav;
         }
-        return buildJson(HttpStatus.BAD_REQUEST, "Invalid argument", ex.getMessage());
+        return buildJson(HttpStatus.BAD_REQUEST, "Invalid argument", ex.getMessage(), path);
+    }
+
+    // ========== BusinessException ========== (Added this handler)
+    @ExceptionHandler(BusinessException.class)
+    public Object handleBusinessException(BusinessException ex, HttpServletRequest request) {
+        String path = request.getRequestURI();
+        if (wantsHtml(request)) {
+            ModelAndView mav = new ModelAndView("error/error");
+            mav.addObject("status", HttpStatus.BAD_REQUEST.value());
+            mav.addObject("error", "Business Rule Violation");
+            mav.addObject("message", ex.getMessage());
+            mav.addObject("path", path);
+            return mav;
+        }
+        // Using 400 Bad Request for business logic failures (like self-rating)
+        return buildJson(HttpStatus.BAD_REQUEST, "Business Rule Violation", ex.getMessage(), path);
     }
 
     // ========== DataIntegrityViolation ==========
     @ExceptionHandler(DataIntegrityViolationException.class)
     public Object handleDataIntegrityViolation(DataIntegrityViolationException ex, HttpServletRequest request) {
+        String path = request.getRequestURI();
         if (wantsHtml(request)) {
             ModelAndView mav = new ModelAndView("error/error");
             mav.addObject("status", HttpStatus.CONFLICT.value());
             mav.addObject("error", "Data integrity violation");
             mav.addObject("message", "Operation would violate data integrity constraints");
-            mav.addObject("path", request.getRequestURI());
+            mav.addObject("path", path);
             return mav;
         }
-        return buildJson(HttpStatus.CONFLICT, "Data integrity violation", "Operation would violate data integrity constraints");
+        return buildJson(HttpStatus.CONFLICT, "Data integrity violation", "Operation would violate data integrity constraints", path);
     }
 
     // ========== Authentication exceptions ==========
     @ExceptionHandler(AuthenticationException.class)
     public Object handleAuthentication(AuthenticationException ex, HttpServletRequest request) {
+        String path = request.getRequestURI();
         if (wantsHtml(request)) {
             ModelAndView mav = new ModelAndView("error/error");
             mav.addObject("status", HttpStatus.UNAUTHORIZED.value());
             mav.addObject("error", "Authentication Failed");
             mav.addObject("message", ex.getMessage());
-            mav.addObject("path", request.getRequestURI());
+            mav.addObject("path", path);
             return mav;
         }
-        return buildJson(HttpStatus.UNAUTHORIZED, "Authentication Failed", ex.getMessage());
+        return buildJson(HttpStatus.UNAUTHORIZED, "Authentication Failed", ex.getMessage(), path);
     }
 
     @ExceptionHandler(BadCredentialsException.class)
     public Object handleBadCredentials(BadCredentialsException ex, HttpServletRequest request) {
+        String path = request.getRequestURI();
         if (wantsHtml(request)) {
             ModelAndView mav = new ModelAndView("error/error");
             mav.addObject("status", HttpStatus.UNAUTHORIZED.value());
             mav.addObject("error", "Authentication failed");
             mav.addObject("message", "Login ou Senha inválidos.");
-            mav.addObject("path", request.getRequestURI());
+            mav.addObject("path", path);
             return mav;
         }
-        return buildJson(HttpStatus.UNAUTHORIZED, "Authentication failed", "Login ou Senha Inválida");
+        return buildJson(HttpStatus.UNAUTHORIZED, "Authentication failed", "Login ou Senha Inválida", path);
     }
 
     @ExceptionHandler(DisabledException.class)
     public Object handleDisabledUser(DisabledException ex, HttpServletRequest request) {
+        String path = request.getRequestURI();
         if (wantsHtml(request)) {
             ModelAndView mav = new ModelAndView("error/error");
             mav.addObject("status", HttpStatus.UNAUTHORIZED.value());
             mav.addObject("error", "Authentication failed");
             mav.addObject("message", "Conta Desativada");
-            mav.addObject("path", request.getRequestURI());
+            mav.addObject("path", path);
             return mav;
         }
-        return buildJson(HttpStatus.UNAUTHORIZED, "Authentication failed", "Conta Desativada");
+        return buildJson(HttpStatus.UNAUTHORIZED, "Authentication failed", "Conta Desativada", path);
     }
 
-    // ========== GEENRIC ==========
+    // ========== GENERIC ==========
     @ExceptionHandler(Exception.class)
     public Object handleGenericException(Exception ex, HttpServletRequest request) {
+        String path = request.getRequestURI();
         if (wantsHtml(request)) {
             ModelAndView mav = new ModelAndView("error/error");
             mav.addObject("status", HttpStatus.INTERNAL_SERVER_ERROR.value());
             mav.addObject("error", "Erro Inesperado Aconteceu");
             mav.addObject("message", ex.getMessage());
-            mav.addObject("path", request.getRequestURI());
+            mav.addObject("path", path);
             return mav;
         }
-        return buildJson(HttpStatus.INTERNAL_SERVER_ERROR, "Erro Inesperado Aconteceu", ex.getMessage());
+        return buildJson(HttpStatus.INTERNAL_SERVER_ERROR, "Erro Inesperado Aconteceu", ex.getMessage(), path);
     }
 }

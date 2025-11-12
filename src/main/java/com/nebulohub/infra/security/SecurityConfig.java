@@ -1,96 +1,89 @@
 package com.nebulohub.infra.security;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.nebulohub.exception.ErrorResponse;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
-/**
- * CONTROLE DE SEGURANÇA
- *
- * - ENDPOINTS DE API --> /api/
- * - MVC -> /
- */
-
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity(prePostEnabled = true) // This enables @PreAuthorize
+@RequiredArgsConstructor
 public class SecurityConfig {
 
     private final SecurityFilter securityFilter;
-    private final CookieBlacklistLogoutHandler cookieLogoutHandler;
-
-    public SecurityConfig(SecurityFilter securityFilter,
-                          CookieBlacklistLogoutHandler cookieLogoutHandler) {
-        this.securityFilter = securityFilter;
-        this.cookieLogoutHandler = cookieLogoutHandler;
-    }
+    private final ObjectMapper objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http
+        return http
                 .csrf(csrf -> csrf.disable())
-
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
-
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
+                        // Public endpoints
+                        .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/users/register").permitAll()
+
+                        // Public read-only endpoints
+                        .requestMatchers(HttpMethod.GET, "/api/posts/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/users/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/comments/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/ratings/**").permitAll()
+
+                        // Swagger UI
+                        .requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
+
+                        // All other requests must be authenticated
                         .anyRequest().permitAll()
                 )
-
-                // REQUISIÇÕES WEB MANDARÃO O USUÁRIO PARA UM REDIRECT DE LOGIN;
-                // REQUISIÇÕES DIRETAMENTE NA API RETORNARÃO 401 UNAUTHORIZED;
-                // EXCEPTION DE AUTENTICAÇÃO
                 .exceptionHandling(ex -> ex
-                        .authenticationEntryPoint((req, res, authEx) -> {
-                            String accept = req.getHeader("Accept");
-                            if (accept != null && accept.contains("text/html")) {
-                                String redirectTo = req.getRequestURI();
-                                res.sendRedirect("/login?redirectTo=" + java.net.URLEncoder.encode(redirectTo, java.nio.charset.StandardCharsets.UTF_8));
-                            } else {
-                                res.sendError(HttpServletResponse.SC_UNAUTHORIZED);
-                            }
+                        .authenticationEntryPoint((request, response, authException) -> {
+                            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                            response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+
+                            ErrorResponse errorResponse = new ErrorResponse(
+                                    HttpStatus.UNAUTHORIZED.value(),
+                                    "Unauthorized",
+                                    "You must be authenticated to access this resource.",
+                                    request.getRequestURI()
+                            );
+
+                            objectMapper.writeValue(response.getOutputStream(), errorResponse);
                         })
-                        .accessDeniedHandler(new CustomAccessDeniedHandler())
-                )
+                        .accessDeniedHandler((request, response, accessDeniedException) -> {
+                            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                            response.setContentType(MediaType.APPLICATION_JSON_VALUE);
 
-                // ADICIONANDO O FILTRO DE SEGURANÇA ANTES DAS REQUISIÇOES
+                            ErrorResponse errorResponse = new ErrorResponse(
+                                    HttpStatus.FORBIDDEN.value(),
+                                    "Forbidden",
+                                    "You do not have permission to access this resource.",
+                                    request.getRequestURI()
+                            );
+
+                            objectMapper.writeValue(response.getOutputStream(), errorResponse);
+                        })
+                )
                 .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class)
-
-                // PASSANDO 'EMAIL' COMO 'USERNAME' PRO SECURITY COOPERAR ;)
-                .formLogin(login -> login
-                        .loginPage("/login")
-                        .permitAll()
-                        .loginProcessingUrl("/permit_login")
-                        .usernameParameter("email")
-                        .passwordParameter("password")
-                        .defaultSuccessUrl("/", false)
-                        .failureUrl("/login?error")
-                )
-
-                // LOGOUT VAI INVALIDAR A SESSÃO E MATAR OS COOKIES
-                // A /API VAI ADICIONAR O TOKEN À UMA BLACKLIST
-                .logout(logout -> logout
-                        .logoutUrl("/logout-web")
-                        .addLogoutHandler(cookieLogoutHandler)
-                        .logoutSuccessUrl("/?logout")
-                        .invalidateHttpSession(true)
-                        .deleteCookies("JSESSIONID")
-                );
-        return http.build();
+                .build();
     }
 
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
         return configuration.getAuthenticationManager();
     }
-
-
 }

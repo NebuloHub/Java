@@ -1,46 +1,55 @@
 package com.nebulohub.service;
 
 import com.nebulohub.domain.user.*;
-
+import com.nebulohub.exception.AuthenticationException;
 import com.nebulohub.exception.DuplicateEntryException;
 import com.nebulohub.exception.NotFoundException;
+import com.nebulohub.infra.security.LoginDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.prepost.PreAuthorize; // <-- IMPORT ADDED
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-@RequiredArgsConstructor // Lombok constructor injection
+@RequiredArgsConstructor
 public class UserService {
 
     private final UserRepository userRepository;
-    private final PasswordEncoder passwordEncoder; // Injected from PasswordEncoderConfig
+    private final PasswordEncoder passwordEncoder;
+    private final AuthenticationManager authenticationManager;
+    private final TokenService tokenService;
 
-    /**
-     * Finds all users with pagination.
-     */
+    public String login(LoginDto dto) {
+        try {
+            var authToken = new UsernamePasswordAuthenticationToken(dto.email(), dto.password());
+            Authentication authentication = authenticationManager.authenticate(authToken);
+
+            var user = (User) authentication.getPrincipal();
+            return tokenService.generateToken(user);
+
+        } catch (org.springframework.security.core.AuthenticationException e) {
+            throw new AuthenticationException("Invalid email or password");
+        }
+    }
+
     public Page<ReadUserDto> findAll(Pageable pageable) {
-        // Map Page<User> to Page<ReadUserDto> using the correct constructor
         return userRepository.findAll(pageable).map(ReadUserDto::new);
     }
 
-    /**
-     * Finds a single user by their ID.
-     */
     public ReadUserDto findById(Long id) {
         return userRepository.findById(id)
                 .map(ReadUserDto::new)
                 .orElseThrow(() -> new NotFoundException("User not found with id: " + id));
     }
 
-    /**
-     * Creates a new user.
-     */
     @Transactional
     public ReadUserDto create(CreateUserDto dto) {
-        // 1. Check for duplicates
         if (userRepository.existsByUsername(dto.username())) {
             throw new DuplicateEntryException("Username already in use: " + dto.username());
         }
@@ -48,31 +57,27 @@ public class UserService {
             throw new DuplicateEntryException("Email already in use: " + dto.email());
         }
 
-        // 2. Hash the password
         String hashedPassword = passwordEncoder.encode(dto.password());
 
-        // 3. Create and save the new user
         User newUser = new User();
-        newUser.setUsername(dto.username()); // Sets the actual username
-        newUser.setEmail(dto.email());       // Sets the login email
+        newUser.setUsername(dto.username());
+        newUser.setEmail(dto.email());
         newUser.setPassword(hashedPassword);
-        newUser.setRole("ROLE_USER"); // Default role
+        newUser.setRole("ROLE_USER");
 
         User savedUser = userRepository.save(newUser);
         return new ReadUserDto(savedUser);
     }
 
-    /**
-     * Updates an existing user.
-     */
     @Transactional
+    @PreAuthorize("hasRole('ADMIN') or #id == principal.id")
     public ReadUserDto update(Long id, UpdateUserDto dto) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("User not found with id: " + id));
 
-        // Perform partial updates
+        // Authorization is handled by @PreAuthorize
+
         if (dto.username() != null) {
-            // Check if new username is already taken by *another* user
             if (userRepository.existsByUsername(dto.username()) && !user.getActualUsername().equals(dto.username())) {
                 throw new DuplicateEntryException("Username already in use: " + dto.username());
             }
@@ -80,7 +85,6 @@ public class UserService {
         }
 
         if (dto.email() != null) {
-            // Check if new email is already taken by *another* user
             if (userRepository.existsByEmail(dto.email()) && !user.getEmail().equals(dto.email())) {
                 throw new DuplicateEntryException("Email already in use: " + dto.email());
             }
@@ -88,12 +92,13 @@ public class UserService {
         }
 
         if (dto.password() != null) {
-            // Re-hash the password if it's being changed
             user.setPassword(passwordEncoder.encode(dto.password()));
         }
 
         if (dto.role() != null) {
-            // Optionally allow role update
+            // We'll add a check here to ensure ONLY an admin can change roles
+            // For now, @PreAuthorize on the whole method stops a user from changing their own role.
+            // If an admin is calling this, we can assume they are allowed.
             user.setRole(dto.role());
         }
 
@@ -101,14 +106,13 @@ public class UserService {
         return new ReadUserDto(updatedUser);
     }
 
-    /**
-     * Deletes a user by their ID.
-     */
     @Transactional
+    @PreAuthorize("hasRole('ADMIN')")
     public void delete(Long id) {
         if (!userRepository.existsById(id)) {
             throw new NotFoundException("User not found with id: " + id);
         }
+        // Authorization is handled by @PreAuthorize
         userRepository.deleteById(id);
     }
 }

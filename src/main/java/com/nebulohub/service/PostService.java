@@ -1,14 +1,17 @@
 package com.nebulohub.service;
 
 import com.nebulohub.domain.post.*;
+
 import com.nebulohub.domain.rating.Rating;
-import com.nebulohub.domain.rating.RatingRepository; // <-- IMPORT ADDED
+import com.nebulohub.domain.rating.RatingRepository;
 import com.nebulohub.domain.user.User;
 import com.nebulohub.domain.user.UserRepository;
 import com.nebulohub.exception.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.prepost.PreAuthorize; // <-- IMPORT ADDED
+import org.springframework.security.core.Authentication; // <-- IMPORT ADDED
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,7 +23,7 @@ public class PostService {
 
     private final PostRepository postRepository;
     private final UserRepository userRepository;
-    private final RatingRepository ratingRepository; // <-- REPOSITORY INJECTED
+    private final RatingRepository ratingRepository;
 
     public Page<ReadPostDto> findAll(Pageable pageable) {
         return postRepository.findAllWithUserOrderByCreatedAtDesc(pageable)
@@ -34,23 +37,28 @@ public class PostService {
     }
 
     @Transactional
-    public ReadPostDto create(CreatePostDto dto) {
-        User author = userRepository.findById(dto.userId())
-                .orElseThrow(() -> new NotFoundException("User (author) not found with id: " + dto.userId()));
+    public ReadPostDto create(CreatePostDto dto, Authentication authentication) {
+        // 1. Get the authenticated user from the token
+        User author = (User) authentication.getPrincipal();
 
+        // 2. Create the new post
         Post newPost = new Post();
         newPost.setTitle(dto.title());
         newPost.setDescription(dto.description());
-        newPost.setUser(author);
+        newPost.setUser(author); // Set the author
 
+        // 3. Save and return DTO
         Post savedPost = postRepository.save(newPost);
         return new ReadPostDto(savedPost);
     }
 
     @Transactional
+    @PreAuthorize("hasRole('ADMIN') or @postRepository.findById(#id).get().getUser().getId() == principal.id")
     public ReadPostDto update(Long id, UpdatePostDto dto) {
         Post post = postRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Post not found with id: " + id));
+
+        // Authorization is handled by @PreAuthorize
 
         if (dto.title() != null) {
             post.setTitle(dto.title());
@@ -64,36 +72,31 @@ public class PostService {
     }
 
     @Transactional
+    @PreAuthorize("hasRole('ADMIN') or @postRepository.findById(#id).get().getUser().getId() == principal.id")
     public void delete(Long id) {
         if (!postRepository.existsById(id)) {
             throw new NotFoundException("Post not found with id: " + id);
         }
+        // Authorization is handled by @PreAuthorize
+
         postRepository.deleteById(id);
     }
 
-    /**
-     * **NEWLY ADDED METHOD**
-     * Recalculates and updates the average rating and rating count for a post.
-     * This is called by the RatingService whenever a rating is created or deleted.
-     */
     @Transactional
     public void updatePostRatingStats(Long postId) {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new NotFoundException("Post not found with id: " + postId));
 
-        // Find all ratings for the post
         List<Rating> ratings = ratingRepository.findAllByPostId(postId);
 
-        // Calculate new stats
         int ratingCount = ratings.size();
         double avgRating = ratings.stream()
                 .mapToInt(Rating::getRatingValue)
                 .average()
                 .orElse(0.0);
 
-        // Set and save the post
         post.setRatingCount(ratingCount);
-        post.setAvgRating(avgRating); // The DB stores NUMBER(3,1) so it will be rounded
+        post.setAvgRating(avgRating);
 
         postRepository.save(post);
     }

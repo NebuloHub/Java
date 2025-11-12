@@ -17,6 +17,7 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
+import org.springframework.security.core.Authentication; // <-- IMPORT ADDED
 
 import java.net.URI;
 
@@ -28,29 +29,29 @@ public class RatingController {
 
     private final RatingService ratingService;
 
-    @Operation(summary = "Submit or Update a rating for a post (Upsert)") // <-- UPDATED
+    @Operation(summary = "Submit or Update a rating for a post (Auth required)")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "Rating submitted successfully"),
-            @ApiResponse(responseCode = "400", description = "Invalid data (e.g., value > 10, or self-rating)"),
-            @ApiResponse(responseCode = "404", description = "User or Post not found")
-            // 409 Conflict is removed, as we now handle updates
+            @ApiResponse(responseCode = "400", description = "Invalid data (e.g., self-rating)"),
+            @ApiResponse(responseCode = "401", description = "User must be authenticated"),
+            @ApiResponse(responseCode = "404", description = "Post not found")
     })
     @PostMapping("/ratings")
-    public ResponseEntity<ReadRatingDto> createOrUpdate( // <-- UPDATED
-                                                         @RequestBody @Valid SubmitRatingDto dto, // <-- DTO RENAMED
-                                                         UriComponentsBuilder uriBuilder
+    public ResponseEntity<ReadRatingDto> createOrUpdate(
+            @RequestBody @Valid SubmitRatingDto dto,
+            Authentication authentication,
+            UriComponentsBuilder uriBuilder
     ) {
-        // Use the new service method
-        ReadRatingDto newRating = ratingService.createOrUpdate(dto);
+        ReadRatingDto newRating = ratingService.createOrUpdate(dto, authentication);
         URI uri = uriBuilder.path("/api/ratings/{id}").buildAndExpand(newRating.id()).toUri();
 
-        // Return 201 Created, which is fine for an upsert
         return ResponseEntity.created(uri).body(newRating);
     }
 
-    @Operation(summary = "Delete (retract) a rating")
+    @Operation(summary = "Delete (retract) a rating (Owner or Admin only)")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "204", description = "Rating deleted successfully"),
+            @ApiResponse(responseCode = "403", description = "User is not the owner or an admin"),
             @ApiResponse(responseCode = "404", description = "Rating not found")
     })
     @DeleteMapping("/ratings/{id}")

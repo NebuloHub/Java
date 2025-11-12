@@ -1,6 +1,5 @@
 package com.nebulohub.controller;
 
-
 import com.nebulohub.domain.post.CreatePostDto;
 import com.nebulohub.domain.post.ReadPostDto;
 import com.nebulohub.domain.post.UpdatePostDto;
@@ -16,6 +15,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication; // <-- IMPORT ADDED
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -29,18 +29,20 @@ public class PostController {
 
     private final PostService postService;
 
-    @Operation(summary = "Create a new post")
+    @Operation(summary = "Create a new post (Auth required)")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "Post created successfully"),
             @ApiResponse(responseCode = "400", description = "Invalid input data"),
-            @ApiResponse(responseCode = "404", description = "Author (user) not found")
+            @ApiResponse(responseCode = "401", description = "User must be authenticated")
     })
     @PostMapping
     public ResponseEntity<ReadPostDto> create(
             @RequestBody @Valid CreatePostDto dto,
+            Authentication authentication,
             UriComponentsBuilder uriBuilder
     ) {
-        ReadPostDto newPost = postService.create(dto);
+        // Pass the authenticated user to the service
+        ReadPostDto newPost = postService.create(dto, authentication);
         URI uri = uriBuilder.path("/api/posts/{id}").buildAndExpand(newPost.id()).toUri();
         return ResponseEntity.created(uri).body(newPost);
     }
@@ -67,10 +69,10 @@ public class PostController {
         return ResponseEntity.ok(post);
     }
 
-    @Operation(summary = "Update a post's title or description")
+    @Operation(summary = "Update a post's title or description (Owner or Admin only)")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Post updated successfully"),
-            @ApiResponse(responseCode = "400", description = "Invalid input data"),
+            @ApiResponse(responseCode = "403", description = "User is not the owner or an admin"),
             @ApiResponse(responseCode = "404", description = "Post not found")
     })
     @PutMapping("/{id}")
@@ -82,9 +84,10 @@ public class PostController {
         return ResponseEntity.ok(updatedPost);
     }
 
-    @Operation(summary = "Delete a post")
+    @Operation(summary = "Delete a post (Owner or Admin only)")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "204", description = "Post deleted successfully"),
+            @ApiResponse(responseCode = "403", description = "User is not the owner or an admin"),
             @ApiResponse(responseCode = "404", description = "Post not found")
     })
     @DeleteMapping("/{id}")

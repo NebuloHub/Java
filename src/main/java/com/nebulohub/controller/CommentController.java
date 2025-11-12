@@ -18,6 +18,7 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
+import org.springframework.security.core.Authentication; // <-- IMPORT ADDED
 
 import java.net.URI;
 
@@ -29,45 +30,48 @@ public class CommentController {
 
     private final CommentService commentService;
 
-    @Operation(summary = "Post a new comment")
+    @Operation(summary = "Post a new comment (Auth required)")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "Comment posted successfully"),
             @ApiResponse(responseCode = "400", description = "Invalid data"),
-            @ApiResponse(responseCode = "404", description = "User or Post not found")
+            @ApiResponse(responseCode = "401", description = "User must be authenticated"),
+            @ApiResponse(responseCode = "404", description = "Post not found")
     })
     @PostMapping("/comments")
     public ResponseEntity<ReadCommentDto> create(
             @RequestBody @Valid CreateCommentDto dto,
+            Authentication authentication, // <-- Spring injects the logged-in user
             UriComponentsBuilder uriBuilder
     ) {
-        ReadCommentDto newComment = commentService.create(dto);
+        ReadCommentDto newComment = commentService.create(dto, authentication);
         URI uri = uriBuilder.path("/api/comments/{id}").buildAndExpand(newComment.id()).toUri();
         return ResponseEntity.created(uri).body(newComment);
     }
 
-    @Operation(summary = "Update an existing comment")
+    @Operation(summary = "Update an existing comment (Owner or Admin only)")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Comment updated"),
-            @ApiResponse(responseCode = "400", description = "Invalid data"),
+            @ApiResponse(responseCode = "403", description = "User is not the owner or an admin"),
             @ApiResponse(responseCode = "404", description = "Comment not found")
     })
     @PutMapping("/comments/{id}")
     public ResponseEntity<ReadCommentDto> update(
-            @PathVariable Long id,
+            @PathVariable("id") Long commentId,
             @RequestBody @Valid UpdateCommentDto dto
     ) {
-        ReadCommentDto updatedComment = commentService.update(id, dto);
+        ReadCommentDto updatedComment = commentService.update(commentId, dto);
         return ResponseEntity.ok(updatedComment);
     }
 
-    @Operation(summary = "Delete a comment")
+    @Operation(summary = "Delete a comment (Owner or Admin only)")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "204", description = "Comment deleted"),
+            @ApiResponse(responseCode = "403", description = "User is not the owner or an admin"),
             @ApiResponse(responseCode = "404", description = "Comment not found")
     })
     @DeleteMapping("/comments/{id}")
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
-        commentService.delete(id);
+    public ResponseEntity<Void> delete(@PathVariable("id") Long commentId) {
+        commentService.delete(commentId);
         return ResponseEntity.noContent().build();
     }
 
