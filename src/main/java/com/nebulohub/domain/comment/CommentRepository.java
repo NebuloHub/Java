@@ -6,16 +6,16 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
-import java.util.List; // <-- IMPORT ADDED
+import java.util.List;
 
 @Repository
 public interface CommentRepository extends JpaRepository<Comment, Long> {
 
     /**
      * Finds all comments for a specific post, fetching the user data eagerly.
-     * Ordered by creation date (oldest first) to show a proper thread.
+     * **FIX:** Ordered by creation date (newest first) as requested.
      */
-    @Query("SELECT c FROM Comment c JOIN FETCH c.user u WHERE c.post.id = :postId ORDER BY c.createdAt ASC")
+    @Query("SELECT c FROM Comment c JOIN FETCH c.user u WHERE c.post.id = :postId ORDER BY c.createdAt DESC")
     Page<Comment> findAllByPostIdWithUser(Long postId, Pageable pageable);
 
     /**

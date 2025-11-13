@@ -1,22 +1,14 @@
-<!-- File: src/main/resources/templates/fragments/comment-list.html -->
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <body>
 
-<!--
-  Reusable Comment List Fragment
-  Receives one parameter: 'comments' (a List<ReadCommentDto>)
--->
 <div th:fragment="commentList(comments)" class="post-comments">
 
-    <!-- Loop over each comment -->
     <div th:each="comment : ${comments}" class="comment-item">
         <p class="mb-0">
-            <!-- Author Username (Bold) -->
             <a th:href="@{|/users/${comment.userId}|}" class="fw-bold text-decoration-none" th:text="${comment.username}">username</a>:
 
-            <!-- Comment Content -->
-            <span th:text="${comment.content}">This is the comment text.</span>
+            <span class="formatted-text" th:text="${comment.content}">This is the comment text.</span>
         </p>
     </div>
 

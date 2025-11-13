@@ -264,3 +264,85 @@ a:hover {
   color: #000;
   box-shadow: 0 0 12px rgba(255, 153, 0, 0.4);
 }
+
+/* --- Custom Alerts --- */
+/*
+  Define o fundo escuro para todos os alertas,
+  combinando com os painéis.
+*/
+.alert {
+  background-color: var(--nh-dark-panel);
+  border-width: 1px;
+  border-style: solid;
+}
+
+/* Alerta de Sucesso (Laranja) */
+.alert-success {
+  color: #FFD180; /* Um laranja claro para o texto */
+  border-color: var(--nh-orange); /* Borda laranja da marca */
+}
+
+/* Alerta de Erro (Vermelho) */
+.alert-danger {
+  color: #f48fb1; /* Um vermelho/rosa claro para o texto */
+  border-color: #dc3545; /* Um vermelho escuro para a borda */
+}
+
+/* --- FIX for '10' button wrap --- */
+/*
+  Overrides the 'width: 40px' from the original rule.
+  'min-width' allows single-digit buttons to remain 40px
+  (matching their height), but lets the '10' button
+  expand horizontally to fit its content.
+*/
+.btn-rating {
+  width: auto; /* Reset width */
+  min-width: 40px; /* Set a minimum width */
+  padding-left: 8px;  /* Add a little horizontal padding */
+  padding-right: 8px; /* Add a little horizontal padding */
+}
+
+/* --- **NEW** Style for Disabled Primary Button --- */
+/*
+  Overrides the default Bootstrap :disabled style
+  to match our theme.
+*/
+.btn-primary:disabled,
+.btn-primary.disabled {
+  background-color: var(--nh-dark-panel); /* Dark grey background */
+  border-color: var(--nh-border);      /* Darker border */
+  color: var(--nh-text-secondary);     /* Muted text color */
+  opacity: 0.7; /* Keep it faded to show it's disabled */
+}
+
+/* --- **NEW** Helper Class for Formatting --- */
+/*
+  Tells the browser to respect newlines and
+  spaces, but to still wrap text normally.
+*/
+.formatted-text {
+  white-space: pre-wrap;
+}
+
+/* --- **NEW** Pagination Styling --- */
+/*
+  Sobrescreve as variáveis do Bootstrap 5 para
+  estilizar a paginação para o nosso tema escuro.
+*/
+.pagination {
+  --bs-pagination-color: var(--nh-text-secondary);      /* Texto padrão (cinza) */
+  --bs-pagination-bg: var(--nh-dark-panel);           /* Fundo padrão (painel escuro) */
+  --bs-pagination-border-color: var(--nh-border);       /* Borda padrão (cinza) */
+  --bs-pagination-hover-color: var(--nh-orange);        /* Texto no hover (laranja) */
+  --bs-pagination-hover-bg: var(--nh-dark-bg);        /* Fundo no hover (preto) */
+  --bs-pagination-hover-border-color: var(--nh-orange); /* Borda no hover (laranja) */
+  --bs-pagination-focus-color: var(--nh-orange);
+  --bs-pagination-focus-bg: var(--nh-dark-bg);
+  --bs-pagination-focus-box-shadow: 0 0 0 0.25rem rgba(255, 153, 0, 0.25);
+  --bs-pagination-active-color: #000;                   /* Texto ativo (preto) */
+  --bs-pagination-active-bg: var(--nh-orange);        /* Fundo ativo (laranja) */
+  --bs-pagination-active-border-color: var(--nh-orange);/* Borda ativa (laranja) */
+  --bs-pagination-disabled-color: #555;                 /* Texto desabilitado (cinza escuro) */
+  --bs-pagination-disabled-bg: var(--nh-dark-panel);
+  --bs-pagination-disabled-border-color: var(--nh-border);
+}

@@ -1,105 +1,103 @@
-<!-- File: src/main/resources/templates/posts/view.html (NEW FILE) -->
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
       th:replace="~{layout/main :: layout(pageTitle=${post.title}, content=~{::main})}">
 
-<!-- This <main> tag will be passed as the 'content' parameter -->
 <main>
 
     <div class="row justify-content-center">
-        <div class.="col-lg-7" col-md-9 mt-5> <!-- Centered column -->
-
-            <!-- 1. The Main Post Card -->
-            <div class="card post-card mb-4">
-                <!-- Card Header for Author -->
-                <div class="card-header post-header">
-                    <div>
-                        <!-- TODO: Link to user profile page later -->
-                        <a href="#" class="fw-bold text-decoration-none" th:text="${post.author.username}">authorUsername</a>
-                    </div>
-                    <small class="text-muted" th:text="${#temporals.format(post.createdAt, 'dd MMM yyyy')}">10 Jan 2025</small>
+        <div class="col-lg-7 col-md-9 mt-5"> <div class="card post-card mb-4">
+            <div class="card-header post-header">
+                <div>
+                    <a th:href="@{|/users/${post.author.id}|}" class="fw-bold text-decoration-none" th:text="${post.author.username}">authorUsername</a>
                 </div>
+                <small class="text-muted" th:text="${#temporals.format(post.createdAt, 'dd MMM yyyy')}">10 Jan 2025</small>
+            </div>
 
-                <!-- Card Body for Title & Description -->
-                <div class="card-body">
-                    <h2 class="card-title" th:text="${post.title}">Post Title Goes Here</h2>
-                    <!-- Use th:utext to render line breaks -->
-                    <p class="card-text" th:utext="${#strings.replace(post.description, T(java.lang.System).getProperty('line.separator'), '<br/>')}">
-                        Full post description.
-                    </p>
-                </div>
+            <div class="card-body">
+                <h2 class="card-title" th:text="${post.title}">Post Title Goes Here</h2>
 
-                <!-- Card Footer for Stats (Rating) -->
-                <div class="card-footer post-stats">
+                <p class="card-text formatted-text" th:text="${post.description}">
+                    Full post description.
+                </p>
+            </div>
+
+            <div class="card-footer post-stats">
                     <span class="text-muted">
                         <strong class="rating-highlight">Rating:</strong>
                         <span th:text="${#numbers.formatDecimal(post.avgRating, 1, 1)}">8.5</span> / 10
                         (<span th:text="${post.ratingCount}">10</span> votes)
                     </span>
-                </div>
             </div>
+        </div>
 
-            <!-- 2. Rate This Post (Authenticated users only) -->
             <div sec:authorize="isAuthenticated()" class="card post-card mb-4">
                 <div class="card-body">
                     <h5 class="card-title mb-3" th:text="#{post.view.yourRating}">Your Rating</h5>
 
-                    <!-- Rating success/error messages -->
                     <div th:if="${ratingSuccess}" class="alert alert-success" th:text="${ratingSuccess}"></div>
                     <div th:if="${ratingError}" class="alert alert-danger" th:text="${ratingError}"></div>
 
                     <form th:action="@{|/ratings/post/${post.id}|}" th:object="${newRating}" method="post" class="rating-form">
                         <div class="d-flex justify-content-center flex-wrap">
-                            <!-- Loop 0-10 -->
                             <div th:each="i : ${#numbers.sequence(0, 10)}" class="rating-button-wrapper">
-                                <!-- Radio button (hidden) -->
                                 <input type="radio" th:field="*{ratingValue}" th:value="${i}" th:id="|rating${i}|" class="d-none">
-                                <!-- The visible button -->
                                 <label th:for="|rating${i}|" class="btn btn-rating" th:text="${i}">0</label>
                             </div>
                         </div>
-                        <button type="submit" class="btn btn-primary w-100 mt-3" th:text="#{post.view.submitRating}">Submit Rating</button>
+                        <button type="submit" class="btn btn-primary w-100 mt-3" id="submitRatingBtn"
+                                th:text="#{post.view.submitRating}" disabled>Submit Rating</button>
                     </form>
                 </div>
             </div>
 
-            <!-- 3. Add a Comment (Authenticated users only) -->
             <div sec:authorize="isAuthenticated()" class="card post-card mb-4" id="add-comment">
                 <div class="card-body">
                     <h5 class="card-title mb-3" th:text="#{post.view.addComment}">Add a Comment</h5>
 
-                    <!-- Comment success/error messages -->
                     <div th:if="${commentSuccess}" class="alert alert-success" th:text="${commentSuccess}"></div>
                     <div th:if="${commentError}" class="alert alert-danger" th:text="${commentError}"></div>
 
                     <form th:action="@{|/comments/post/${post.id}|}" th:object="${newComment}" method="post">
+                        <input type="hidden" th:field="*{postId}" />
+
                         <div class="mb-3">
                             <textarea th:field="*{content}" class="form-control" rows="3" th:placeholder="#{post.view.commentPlaceholder}"></textarea>
                         </div>
-                        <button type_submit="submit" class="btn btn-outline-orange" th:text="#{post.view.submitComment}">Post Comment</button>
+                        <button type="submit" class="btn btn-outline-orange" th:text="#{post.view.submitComment}">Post Comment</button>
                     </form>
                 </div>
             </div>
 
-            <!-- 4. All Comments -->
             <div class="card post-card mb-4" id="comments">
                 <div class="card-body">
                     <h5 class="card-title mb-3" th:text="|Comments (${commentPage.totalElements})|">Comments (0)</h5>
 
-                    <!-- We reuse the exact same fragment as the main feed! -->
                     <div th:if="${!commentPage.empty}" th:replace="~{fragments/comment-list :: commentList(comments=${commentPage.content})}">
-                        <!-- Placeholder -->
                     </div>
 
                     <div th:if="${commentPage.empty}" class="text-center text-muted p-3">
                         <p class="mb-0" th:text="#{post.view.noComments}">Be the first to comment on this idea.</p>
                     </div>
 
-                    <!-- TODO: Add pagination for comments -->
                 </div>
             </div>
 
         </div>
     </div>
+
+    <script th:inline="javascript">
+        document.addEventListener("DOMContentLoaded", function() {
+          const submitButton = document.getElementById('submitRatingBtn');
+          const ratingRadios = document.querySelectorAll('.rating-form input[type="radio"]');
+          ratingRadios.forEach(function(radio) {
+            radio.addEventListener('click', function() {
+              if (submitButton) {
+                submitButton.disabled = false;
+              }
+            });
+          });
+        });
+    </script>
+
 </main>
 </html>
