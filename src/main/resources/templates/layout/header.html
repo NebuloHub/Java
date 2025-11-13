@@ -5,19 +5,16 @@
 <header th:fragment="header">
     <nav class="navbar navbar-expand-lg navbar-dark">
         <div class="container-fluid">
-            <!-- Brand/Logo -->
             <a class="navbar-brand d-flex align-items-center" th:href="@{/}">
                 <img th:src="@{/images/Logo.jpg}" alt="NebuloHub Logo">
                 <span th:text="#{header.brand}">NebuloHub</span>
             </a>
 
-            <!-- Navbar Toggler -->
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar"
                     aria-controls="mainNavbar" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
 
-            <!-- Navbar Links -->
             <div class="collapse navbar-collapse" id="mainNavbar">
                 <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                     <li class="nav-item">
@@ -25,10 +22,8 @@
                     </li>
                 </ul>
 
-                <!-- Right-side elements -->
                 <ul class="navbar-nav ms-auto mb-2 mb-lg-0 align-items-lg-center">
 
-                    <!-- Language Switcher -->
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                             Language
@@ -39,12 +34,19 @@
                         </ul>
                     </li>
 
-                    <!-- Authenticated User -->
                     <li class="nav-item dropdown" sec:authorize="isAuthenticated()">
                         <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                             <span sec:authentication="principal.actualUsername">Username</span>
                         </a>
                         <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end">
+                            <li>
+                                <a class="dropdown-item"
+                                   th:href="@{|/users/${#authentication.principal.id}|}"
+                                   th:text="#{header.myProfile}">
+                                    My Profile
+                                </a>
+                            </li>
+                            <li><hr class="dropdown-divider" style="border-top-color: var(--nh-border);"></li>
                             <li>
                                 <form th:action="@{/logout}" method="post" class="d-inline">
                                     <button type="submit" class="dropdown-item" th:text="#{header.logout}">Logout</button>
@@ -53,7 +55,6 @@
                         </ul>
                     </li>
 
-                    <!-- Anonymous User -->
                     <li class="nav-item" sec:authorize="!isAuthenticated()">
                         <a th:href="@{/login}" class="btn btn-outline-light me-2" th:text="#{header.login}">Login</a>
                     </li>

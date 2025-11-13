@@ -6,17 +6,17 @@ import jakarta.validation.constraints.Size;
 
 
 public record CreateUserDto(
-        @NotBlank(message = "Username is required")
-        @Size(min = 3, max = 100, message = "Username must be between 3 and 100 characters")
+        @NotBlank(message = "{register.validation.username.required}")
+        @Size(min = 3, max = 100, message = "{register.validation.username.size}")
         String username,
 
-        @NotBlank(message = "Email is required")
-        @Email(message = "Email must be valid")
-        @Size(max = 255, message = "Email is too long")
+        @NotBlank(message = "{register.validation.email.required}")
+        @Email(message = "{register.validation.email.valid}")
+        @Size(max = 255, message = "{register.validation.email.size}")
         String email,
 
-        @NotBlank(message = "Password is required")
-        @Size(min = 6, message = "Password must be at least 6 characters long")
+        @NotBlank(message = "{register.validation.password.required}")
+        @Size(min = 6, message = "{register.validation.password.size}")
         String password
 ) {
 }

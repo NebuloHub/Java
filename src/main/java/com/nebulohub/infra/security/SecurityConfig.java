@@ -29,25 +29,17 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
 
     private final SecurityFilter securityFilter;
-
-    // ObjectMapper needs JavaTimeModule to serialize 'Instant' in ErrorResponse
     private final ObjectMapper objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
 
-    /**
-     * **API Security Chain (Order 1)**
-     * This chain handles all stateless API requests (/api/**)
-     * It uses our custom JWT SecurityFilter.
-     */
     @Bean
     @Order(1)
     public SecurityFilterChain apiSecurityFilterChain(HttpSecurity http) throws Exception {
+        // ... (Nenhuma mudança aqui)
         return http
-                // This chain only applies to paths starting with /api/, /swagger-ui/, or /v3/api-docs/
                 .securityMatcher("/api/**", "/swagger-ui/**", "/v3/api-docs/**")
-                .csrf(AbstractHttpConfigurer::disable) // Disable CSRF for stateless API
+                .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        // Public API endpoints
                         .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/users/register").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/posts/**").permitAll()
@@ -55,11 +47,9 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/comments/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/ratings/**").permitAll()
                         .requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
-                        // All other API requests must be authenticated
                         .anyRequest().authenticated()
                 )
                 .exceptionHandling(ex -> ex
-                        // Handle API 401 Unauthorized
                         .authenticationEntryPoint((request, response, authException) -> {
                             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                             response.setContentType(MediaType.APPLICATION_JSON_VALUE);
@@ -69,7 +59,6 @@ public class SecurityConfig {
                             );
                             objectMapper.writeValue(response.getOutputStream(), errorResponse);
                         })
-                        // Handle API 403 Forbidden
                         .accessDeniedHandler((request, response, accessDeniedException) -> {
                             response.setStatus(HttpServletResponse.SC_FORBIDDEN);
                             response.setContentType(MediaType.APPLICATION_JSON_VALUE);
@@ -80,59 +69,54 @@ public class SecurityConfig {
                             objectMapper.writeValue(response.getOutputStream(), errorResponse);
                         })
                 )
-                // Add our custom JWT filter
                 .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
 
-    /**
-     * **Web Security Chain (Order 2 - Default)**
-     * This chain handles all stateful (session-based) web requests for Thymeleaf.
-     * It uses standard formLogin and sessions.
-     */
     @Bean
     @Order(2)
     public SecurityFilterChain webSecurityFilterChain(HttpSecurity http) throws Exception {
         return http
-                // This chain applies to ALL other requests that API chain didn't catch
                 .authorizeHttpRequests(auth -> auth
-                        // Public web pages and static resources
-                        // We use simple string matchers, no deprecated AntPathRequestMatcher
+                        // 1. Páginas e recursos públicos explícitos
                         .requestMatchers(
                                 "/",
                                 "/login",
-                                "/register", // We need to create this page later
-                                "/posts",
-                                "/posts/**",
+                                "/register",
+                                "/posts", // A lista de posts
+                                // "/posts/**" foi movido para regras mais específicas
                                 "/css/**",
                                 "/images/**",
-                                "/error/**", // Allow error pages
+                                "/error/**",
                                 "/favicon.ico"
                         ).permitAll()
-                        // All other web pages require authentication
+
+                        // 2. Permite visualização pública de posts e perfis
+                        .requestMatchers(HttpMethod.GET, "/posts/{id}").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/users/{id}").permitAll()
+
+                        // 3. Protege todas as *outras* rotas
+                        .requestMatchers("/posts/**").authenticated() // Protege /posts/new, /posts/{id}/edit, etc.
+                        .requestMatchers("/users/**").authenticated() // Protege /users/{id}/edit, etc.
+
+                        // 4. Protege todo o resto
                         .anyRequest().authenticated()
                 )
-                // --- Form Login Config for Thymeleaf ---
                 .formLogin(form -> form
-                        .loginPage("/login") // Use our custom login page
-                        .loginProcessingUrl("/login") // The URL to submit the POST form to
-                        .defaultSuccessUrl("/posts?loginSuccess", true) // Redirect to posts on success
-                        .failureUrl("/login?error") // Redirect back on failure
+                        .loginPage("/login")
+                        .loginProcessingUrl("/login")
+                        .defaultSuccessUrl("/posts?loginSuccess", true)
+                        .failureUrl("/login?error")
                         .permitAll()
                 )
-                // --- Logout Config for Thymeleaf ---
                 .logout(logout -> logout
-                        .logoutRequestMatcher(request -> request.getMethod().equals("POST") && request.getServletPath().equals("/logout")) // Modern replacement
-
-                        // --- THIS IS THE FIX ---
-                        .logoutSuccessUrl("/posts?logout") // <-- CHANGED from "/login?logout"
-
+                        .logoutRequestMatcher(request -> request.getMethod().equals("POST") && request.getServletPath().equals("/logout"))
+                        .logoutSuccessUrl("/posts?logout")
                         .invalidateHttpSession(true)
                         .deleteCookies("JSESSIONID")
                         .permitAll()
                 )
                 .exceptionHandling(ex -> ex
-                        // Handle Web 403 Forbidden
                         .accessDeniedHandler((request, response, accessDeniedException) -> {
                             response.sendRedirect("/login?forbidden");
                         })

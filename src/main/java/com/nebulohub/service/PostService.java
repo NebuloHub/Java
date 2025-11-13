@@ -1,6 +1,6 @@
 package com.nebulohub.service;
 
-import com.nebulohub.domain.comment.CommentRepository; // <-- IMPORT ADDED
+import com.nebulohub.domain.comment.CommentRepository;
 import com.nebulohub.domain.comment.ReadCommentDto;
 import com.nebulohub.domain.post.CreatePostDto;
 import com.nebulohub.domain.post.Post;
@@ -22,7 +22,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.stream.Collectors; // <-- IMPORT ADDED
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -31,45 +31,44 @@ public class PostService {
     private final PostRepository postRepository;
     private final UserRepository userRepository;
     private final RatingRepository ratingRepository;
-    private final CommentRepository commentRepository; // <-- REPOSITORY INJECTED
+    private final CommentRepository commentRepository;
 
-    /**
-     * **METHOD UPDATED**
-     * Finds all posts, and for each post, fetches its total comment count
-     * and the 3 most recent comments for the feed preview.
-     *
-     * This introduces N+1 queries (2 per post), but this is an acceptable
-     * trade-off for clean code. We will fix this with Caching later.
-     */
     public Page<ReadPostDto> findAll(Pageable pageable) {
         Page<Post> postPage = postRepository.findAllWithUserOrderByCreatedAtDesc(pageable);
 
-        // We can't use .map(ReadPostDto::new) anymore, we need to manually map
-        // to add the comment data.
         return postPage.map(post -> {
-            // Get top 3 recent comments
             List<ReadCommentDto> recentComments = commentRepository
                     .findTop3ByPostIdOrderByCreatedAtDesc(post.getId())
                     .stream()
-                    .map(ReadCommentDto::new) // Convert Comment entities to DTOs
+                    .map(ReadCommentDto::new)
                     .collect(Collectors.toList());
 
-            // Get total comment count
             long commentCount = commentRepository.countByPostId(post.getId());
 
-            // Use the new constructor to build the full DTO
             return new ReadPostDto(post, commentCount, recentComments);
         });
     }
 
-    /**
-     * Finds a single post by its ID.
-     * This is for the "detail page" and will NOT include the recent comments
-     * (we will load all comments on that page separately).
-     */
+    public Page<ReadPostDto> findAllByUserId(Long userId, Pageable pageable) {
+        if (!userRepository.existsById(userId)) {
+            throw new NotFoundException("User not found with id: " + userId);
+        }
+        Page<Post> postPage = postRepository.findAllByUserIdOrderByCreatedAtDesc(userId, pageable);
+
+        return postPage.map(post -> {
+            List<ReadCommentDto> recentComments = commentRepository
+                    .findTop3ByPostIdOrderByCreatedAtDesc(post.getId())
+                    .stream()
+                    .map(ReadCommentDto::new)
+                    .collect(Collectors.toList());
+            long commentCount = commentRepository.countByPostId(post.getId());
+            return new ReadPostDto(post, commentCount, recentComments);
+        });
+    }
+
     public ReadPostDto findById(Long id) {
         return postRepository.findById(id)
-                .map(ReadPostDto::new) // Uses the simple constructor
+                .map(ReadPostDto::new)
                 .orElseThrow(() -> new NotFoundException("Post not found with id: " + id));
     }
 
@@ -83,12 +82,15 @@ public class PostService {
         newPost.setUser(author);
 
         Post savedPost = postRepository.save(newPost);
-        // Returns a DTO with no comments, which is correct for a new post
         return new ReadPostDto(savedPost);
     }
 
+    /**
+     * **FIX:** Regra de autorização alterada.
+     * Somente o autor do post pode editá-lo. Admins NÃO podem.
+     */
     @Transactional
-    @PreAuthorize("hasRole('ADMIN') or @postRepository.findById(#id).get().getUser().getId() == principal.id")
+    @PreAuthorize("@postRepository.findById(#id).get().getUser().getId() == principal.id")
     public ReadPostDto update(Long id, UpdatePostDto dto) {
         Post post = postRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Post not found with id: " + id));
@@ -101,10 +103,13 @@ public class PostService {
         }
 
         Post updatedPost = postRepository.save(post);
-        // This is an update, so we don't need to fetch recent comments here
         return new ReadPostDto(updatedPost);
     }
 
+    /**
+     * Regra de autorização está CORRETA.
+     * O autor OU um Admin podem deletar.
+     */
     @Transactional
     @PreAuthorize("hasRole('ADMIN') or @postRepository.findById(#id).get().getUser().getId() == principal.id")
     public void delete(Long id) {

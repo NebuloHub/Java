@@ -8,10 +8,11 @@ import com.nebulohub.infra.security.LoginDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.access.prepost.PreAuthorize; // <-- IMPORT ADDED
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -70,35 +71,37 @@ public class UserService {
     }
 
     @Transactional
-    @PreAuthorize("hasRole('ADMIN') or #id == principal.id")
+    @PreAuthorize("#id == principal.id")
     public ReadUserDto update(Long id, UpdateUserDto dto) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("User not found with id: " + id));
 
-        // Authorization is handled by @PreAuthorize
+        User authenticatedUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
         if (dto.username() != null) {
             if (userRepository.existsByUsername(dto.username()) && !user.getActualUsername().equals(dto.username())) {
-                throw new DuplicateEntryException("Username already in use: " + dto.username());
+                throw new DuplicateEntryException("Username already in-use: " + dto.username());
             }
             user.setUsername(dto.username());
         }
 
         if (dto.email() != null) {
             if (userRepository.existsByEmail(dto.email()) && !user.getEmail().equals(dto.email())) {
-                throw new DuplicateEntryException("Email already in use: " + dto.email());
+                throw new DuplicateEntryException("Email already in-use: " + dto.email());
             }
             user.setEmail(dto.email());
         }
 
-        if (dto.password() != null) {
+        /**
+         * **FIX:**
+         * A senha só é atualizada se o campo não for nulo E não estiver em branco.
+         * Se estiver em branco (para "manter a senha atual"), esta lógica é pulada.
+         */
+        if (dto.password() != null && !dto.password().isBlank()) {
             user.setPassword(passwordEncoder.encode(dto.password()));
         }
 
-        if (dto.role() != null) {
-            // We'll add a check here to ensure ONLY an admin can change roles
-            // For now, @PreAuthorize on the whole method stops a user from changing their own role.
-            // If an admin is calling this, we can assume they are allowed.
+        if (dto.role() != null && authenticatedUser.getRole().equals("ROLE_ADMIN")) {
             user.setRole(dto.role());
         }
 
@@ -107,12 +110,11 @@ public class UserService {
     }
 
     @Transactional
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or #id == principal.id")
     public void delete(Long id) {
         if (!userRepository.existsById(id)) {
             throw new NotFoundException("User not found with id: " + id);
         }
-        // Authorization is handled by @PreAuthorize
         userRepository.deleteById(id);
     }
 }
