@@ -1,0 +1,163 @@
+/* File: src/main/resources/static/css/theme.css (UPDATED) */
+
+:root {
+  --nh-orange: #FF9900; /* Main brand orange */
+  --nh-dark-bg: #000000;    /* Pure black background */
+  --nh-dark-panel: #1a1a1a;  /* Very dark grey for panels/cards */
+  --nh-border: #333333;    /* Subtle border color */
+  --nh-text-primary: #FFFFFF;    /* Main text */
+  --nh-text-secondary: #AAAAAA;  /* Muted text */
+}
+
+body {
+  background-color: var(--nh-dark-bg);
+  color: var(--nh-text-primary);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+a {
+  color: var(--nh-orange);
+  text-decoration: none;
+}
+a:hover {
+  color: var(--nh-text-primary);
+  text-decoration: underline;
+}
+
+/* --- Navbar --- */
+.navbar-dark {
+  background-color: var(--nh-dark-panel) !important;
+  border-bottom: 1px solid var(--nh-border);
+}
+.navbar-brand img {
+  max-height: 40px;
+  border-radius: 4px;
+}
+.navbar-brand span {
+  font-weight: 700;
+  font-size: 1.25rem;
+  margin-left: 0.5rem;
+  color: var(--nh-orange);
+}
+.nav-link {
+  color: var(--nh-text-secondary) !important;
+}
+.nav-link:hover {
+  color: var(--nh-text-primary) !important;
+}
+
+/* --- Buttons --- */
+.btn-primary {
+  background-color: var(--nh-orange);
+  border-color: var(--nh-orange);
+  color: #000; /* Black text on orange for high contrast */
+  font-weight: 700;
+}
+.btn-primary:hover, .btn-primary:focus {
+  background-color: #e68a00;
+  border-color: #e68a00;
+  color: #000;
+  box-shadow: 0 0 12px rgba(255, 153, 0, 0.4);
+}
+
+.btn-outline-light {
+  color: var(--nh-text-secondary);
+  border-color: var(--nh-border);
+}
+.btn-outline-light:hover {
+  color: var(--nh-dark-bg);
+  background-color: var(--nh-text-secondary);
+  border-color: var(--nh-text-secondary);
+}
+
+/* ---
+  NEW: Post Card Styling (Feed)
+  This changes the card to be borderless like FB/IG
+--- */
+.card.post-card {
+  background-color: var(--nh-dark-panel);
+  border: 1px solid var(--nh-border); /* Kept a subtle border */
+  border-radius: 8px;
+}
+
+.post-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: transparent;
+  border-bottom: 1px solid var(--nh-border);
+  padding: 0.75rem 1.25rem;
+}
+
+.card-title a {
+  text-decoration: none;
+  color: var(--nh-text-primary); /* Titles are white */
+}
+.card-title a:hover {
+  text-decoration: underline;
+  color: var(--nh-orange); /* Hover to orange */
+}
+
+.post-stats {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: transparent;
+  border-top: 1px solid var(--nh-border);
+  color: var(--nh-text-secondary);
+  font-size: 0.9rem;
+  padding: 0.75rem 1.25rem;
+}
+.post-stats a {
+  color: var(--nh-text-secondary);
+}
+.post-stats a:hover {
+  color: var(--nh-text-primary);
+}
+
+/* --- Form Inputs --- */
+.form-control {
+    background-color: #050505;
+    border-color: var(--nh-border);
+    color: var(--nh-text-primary);
+}
+.form-control:focus {
+    background-color: #000;
+    border-color: var(--nh-orange);
+    color: var(--nh-text-primary);
+    box-shadow: 0 0 0 0.25rem rgba(255, 153, 0, 0.25);
+}
+.form-control::placeholder {
+    color: var(--nh-text-secondary);
+}
+.card-body, .card-header, .card-footer {
+    background-color: var(--nh-dark-panel);
+    color: var(--nh-text-primary);
+}
+
+/* --- Footer --- */
+.footer {
+  border-top: 1px solid var(--nh-border);
+  color: var(--nh-text-secondary);
+  font-size: 0.9rem;
+}
+
+/* --- Dropdowns --- */
+.dropdown-menu {
+    background-color: var(--nh-dark-panel);
+    border: 1px solid var(--nh-border);
+}
+.dropdown-item {
+    color: var(--nh-text-secondary);
+}
+.dropdown-item:hover {
+    color: var(--nh-text-primary);
+    background-color: #2a2a2a;
+}
+
+/* ---
+  FIX: Make muted text readable
+--- */
+.text-muted, .lead.text-muted {
+  color: var(--nh-text-secondary) !important;
+}

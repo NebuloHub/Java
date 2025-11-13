@@ -1,0 +1,11 @@
+<!-- File: src/main/resources/templates/index.html (UPDATED) -->
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/main :: layout(pageTitle='Home', content=~{::main})}">
+
+<!-- This <main> tag will be passed as the 'content' parameter -->
+<main>
+    <!-- This page just redirects. Content is in HomeController.java -->
+    <p>Redirecting to post feed...</p>
+</main>
+</html>
