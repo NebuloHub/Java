@@ -16,7 +16,14 @@
                 </div>
 
                 <div class="card-body">
-                    <h2 class="card-title" th:text="${post.title}">Post Title Goes Here</h2>
+                    <h2 class="card-title text-center mb-3" th:text="${post.title}">Post Title Goes Here</h2>
+
+                    <div th:if="${post.imageUrl != null AND !post.imageUrl.isBlank()}"
+                         class="post-image-container">
+                        <a th:href="${post.imageUrl}" target="_blank">
+                            <img th:src="${post.imageUrl}" alt="Post Image">
+                        </a>
+                    </div>
 
                     <p class="card-text formatted-text" th:text="${post.description}">
                         Full post description.
@@ -45,7 +52,7 @@
 
                 </div>
 
-                <div class="card-footer post-stats">
+                <div class="card-footer post-stats justify-content-center">
                     <span class="text-muted">
                         <strong class="rating-highlight">Rating:</strong>
                         <span th:text="${#numbers.formatDecimal(post.avgRating, 1, 1)}">8.5</span> / 10
@@ -64,7 +71,6 @@
                     <div th:if="${commentPage.empty}" class="text-center text-muted p-3">
                         <p class="mb-0" th:text="#{post.view.noComments}">Be the first to comment on this idea.</p>
                     </div>
-
                 </div>
             </div>
 

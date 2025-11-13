@@ -79,16 +79,13 @@ public class PostService {
         Post newPost = new Post();
         newPost.setTitle(dto.title());
         newPost.setDescription(dto.description());
+        newPost.setImageUrl(dto.imageUrl()); // <-- LÓGICA ADICIONADA
         newPost.setUser(author);
 
         Post savedPost = postRepository.save(newPost);
         return new ReadPostDto(savedPost);
     }
 
-    /**
-     * **FIX:** Regra de autorização alterada.
-     * Somente o autor do post pode editá-lo. Admins NÃO podem.
-     */
     @Transactional
     @PreAuthorize("@postRepository.findById(#id).get().getUser().getId() == principal.id")
     public ReadPostDto update(Long id, UpdatePostDto dto) {
@@ -101,15 +98,15 @@ public class PostService {
         if (dto.description() != null) {
             post.setDescription(dto.description());
         }
+        // **LÓGICA ADICIONADA** (permite limpar a URL passando uma string vazia)
+        if (dto.imageUrl() != null) {
+            post.setImageUrl(dto.imageUrl());
+        }
 
         Post updatedPost = postRepository.save(post);
         return new ReadPostDto(updatedPost);
     }
 
-    /**
-     * Regra de autorização está CORRETA.
-     * O autor OU um Admin podem deletar.
-     */
     @Transactional
     @PreAuthorize("hasRole('ADMIN') or @postRepository.findById(#id).get().getUser().getId() == principal.id")
     public void delete(Long id) {

@@ -29,22 +29,25 @@
                     </div>
 
                     <div class="card-body">
-                        <h4 class="card-title">
+                        <h4 class="card-title text-center mb-3">
                             <a th:href="@{|/posts/${post.id}|}" th:text="${post.title}">Post Title Goes Here</a>
                         </h4>
+
+                        <div th:if="${post.imageUrl != null AND !post.imageUrl.isBlank()}"
+                             class="post-image-container">
+                            <a th:href="@{|/posts/${post.id}|}">
+                                <img th:src="${post.imageUrl}" alt="Post Image">
+                            </a>
+                        </div>
 
                         <div th:with="maxLength=3000">
                             <p th:if="${#strings.length(post.description) <= maxLength}"
                                class="card-text formatted-text"
-                               th:text="${post.description}">
-                                Short description.
-                            </p>
+                               th:text="${post.description}"></p>
 
                             <div th:if="${#strings.length(post.description) > maxLength}">
                                 <p class="card-text formatted-text"
-                                   th:text="${#strings.substring(post.description, 0, maxLength)} + '...'">
-                                    Truncated description...
-                                </p>
+                                   th:text="${#strings.substring(post.description, 0, maxLength)} + '...'"></p>
                                 <a th:href="@{|/posts/${post.id}|}" class="fw-bold" th:text="#{post.list.seeMore}">See Entire Post</a>
                             </div>
                         </div>
@@ -85,26 +88,25 @@
 
             </div> <nav th:if="${postPage.totalPages > 1}" aria-label="Page navigation" class="mt-4">
             <ul class="pagination justify-content-center">
-
                 <li class="page-item" th:classappend="${postPage.first} ? 'disabled'">
                     <a class="page-link" th:href="@{/posts(page=${postPage.number - 1})}" aria-label="Previous">
                         <span aria-hidden="true">&laquo;</span>
                     </a>
                 </li>
-
                 <li th:each="i : ${#numbers.sequence(0, postPage.totalPages - 1)}"
                     class="page-item" th:classappend="${i == postPage.number} ? 'active'">
                     <a class="page-link" th:href="@{/posts(page=${i})}" th:text="${i + 1}">1</a>
                 </li>
-
                 <li class="page-item" th:classappend="${postPage.last} ? 'disabled'">
                     <a class="page-link" th:href="@{/posts(page=${postPage.number + 1})}" aria-label="Next">
                         <span aria-hidden="true">&raquo;</span>
                     </a>
                 </li>
-
             </ul>
         </nav>
 
-        </div> </div> </main>
+        </div>
+    </div>
+
+</main>
 </html>

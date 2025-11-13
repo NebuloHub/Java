@@ -1,8 +1,7 @@
 package com.nebulohub.domain.post;
 
-// import com.nebulohub.domain.comment.Comment;
 import com.nebulohub.domain.comment.Comment;
-import com.nebulohub.domain.rating.Rating; // <-- IMPORT ADDED
+import com.nebulohub.domain.rating.Rating;
 import com.nebulohub.domain.user.User;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
@@ -40,6 +39,13 @@ public class Post {
     @Column(name = "description")
     private String description;
 
+    /**
+     * **NOVO CAMPO**
+     * Armazena a URL para a imagem do post (opcional).
+     */
+    @Column(name = "image_url", length = 2000)
+    private String imageUrl;
+
     @NotNull
     @Column(name = "avg_rating", nullable = false)
     private Double avgRating = 0.0;
@@ -59,17 +65,9 @@ public class Post {
     @JoinColumn(name = "id_user", nullable = false)
     private User user;
 
-    /**
-     * **NEWLY ADDED RELATIONSHIP**
-     * When this Post is deleted, all associated Ratings will also be deleted.
-     */
     @OneToMany(mappedBy = "post", cascade = CascadeType.REMOVE, orphanRemoval = true)
     private List<Rating> ratings;
 
-    /**
-     * **CASCADE DELETE**
-     * When this Post is deleted, all associated Comments will also be deleted.
-     */
-     @OneToMany(mappedBy = "post", cascade = CascadeType.REMOVE, orphanRemoval = true)
-     private List<Comment> comments;
+    @OneToMany(mappedBy = "post", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    private List<Comment> comments;
 }

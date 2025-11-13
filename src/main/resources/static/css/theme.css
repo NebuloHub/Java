@@ -105,32 +105,17 @@ a:hover {
 
 
 /* --- Post Card Styling (Feed) --- */
-/*
-  **ESTA É A REGRA BASE**
-  Ela tem uma especificidade de (0,2,0)
-*/
 .card.post-card {
   background-color: var(--nh-dark-panel);
   border: 1px solid var(--nh-border);
   border-radius: 8px;
 }
 
-/*
-  **FIX 1:**
-  Esta nova regra (especificidade 0,3,0) é MAIS FORTE que a base.
-  Ela remove os cantos arredondados de baixo do card superior.
-*/
 .card.post-card.post-card-top {
   border-bottom-left-radius: 0;
   border-bottom-right-radius: 0;
 }
 
-/*
-  **FIX 2:**
-  Esta nova regra (especificidade 0,3,0) também é MAIS FORTE.
-  Ela remove os cantos arredondados de cima E a borda de cima
-  do card de comentários, unificando-os.
-*/
 .card.post-card.post-card-connected {
   border-top-left-radius: 0;
   border-top-right-radius: 0;
@@ -145,21 +130,20 @@ a:hover {
   background-color: transparent;
   border-bottom: 1px solid var(--nh-border);
   padding: 0.75rem 1.25rem;
-  color: var(--nh-text-primary); /* Ensures author text is white */
+  color: var(--nh-text-primary);
 }
-/* Fix for author name being "hugged" */
 .post-header > div {
-    padding-right: 1rem; /* Add space between author and date */
+    padding-right: 1rem;
 }
 
 
 .card-title a {
   text-decoration: none;
-  color: var(--nh-text-primary); /* Titles are white */
+  color: var(--nh-text-primary);
 }
 .card-title a:hover {
   text-decoration: underline;
-  color: var(--nh-orange); /* Hover to orange */
+  color: var(--nh-orange);
 }
 
 .post-stats {
@@ -241,9 +225,8 @@ a:hover {
     margin-bottom: 0.3rem;
 }
 
-/* Style for the author link in a comment */
 .comment-item a {
-    color: var(--nh-text-primary); /* White, like the post title */
+    color: var(--nh-text-primary);
     text-decoration: none;
 }
 .comment-item a:hover {
@@ -251,12 +234,10 @@ a:hover {
     text-decoration: underline;
 }
 
-/* 1. Make rating text orange */
 .rating-highlight {
   color: var(--nh-orange);
 }
 
-/* 2. Add separator and spacing between comments */
 .comment-item + .comment-item {
     margin-top: 0.75rem;
     padding-top: 0.75rem;
@@ -265,7 +246,6 @@ a:hover {
 
 /* --- Styles for Post View Page --- */
 
-/* Rating Button Form */
 .rating-button-wrapper {
   margin: 4px;
 }
@@ -273,13 +253,10 @@ a:hover {
   color: var(--nh-text-secondary);
   background-color: var(--nh-dark-bg);
   border: 1px solid var(--nh-border);
-  /* width: 40px; */ /* REMOVIDO para corrigir o '10' */
   height: 40px;
-  border-radius: 50%; /* Circular buttons */
+  border-radius: 50%;
   font-weight: 600;
   transition: all 0.2s ease;
-
-  /* FIX para o '10' */
   width: auto;
   min-width: 40px;
   padding-left: 8px;
@@ -290,7 +267,6 @@ a:hover {
   color: var(--nh-text-primary);
 }
 
-/* Style for the *selected* rating button */
 .rating-form input[type="radio"]:checked + .btn-rating {
   background-color: var(--nh-orange);
   border-color: var(--nh-orange);
@@ -327,6 +303,16 @@ a:hover {
   white-space: pre-wrap;
 }
 
+/* **NOVA REGRA**
+  Adiciona preenchimento horizontal (padding) APENAS
+  ao texto de descrição do post (que usa <p>),
+  mas não aos comentários (que usam <span>).
+*/
+p.formatted-text {
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
 /* --- User Profile Page Styling --- */
 .profile-header-card {
   background-color: var(--nh-dark-panel);
@@ -351,7 +337,6 @@ a:hover {
   padding-bottom: 0.5rem;
   margin-top: 2.5rem;
   margin-bottom: 1.5rem;
-  /* FIX: Sombra para destacar do fundo */
   text-shadow: 0 0 6px rgba(0, 0, 0, 0.7);
 }
 
@@ -412,4 +397,22 @@ a:hover {
   font-size: 1rem;
   display: block;
   margin-bottom: 4px;
+}
+
+/*
+  **FIX:** Unificado o estilo da imagem do post.
+  Formato 16:9 com "gray bars" (contain)
+*/
+.post-image-container {
+  width: 100%;
+  aspect-ratio: 16 / 9; /* Formato 16:9 */
+  overflow: hidden;
+  margin-bottom: 1rem;
+  border-radius: 4px;
+  background-color: var(--nh-border); /* Fundo para "gray bars" */
+}
+.post-image-container img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain; /* Cria "gray bars" */
 }

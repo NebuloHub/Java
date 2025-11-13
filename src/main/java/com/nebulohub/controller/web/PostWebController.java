@@ -4,7 +4,7 @@ package com.nebulohub.controller.web;
 import com.nebulohub.domain.comment.CreateCommentDto;
 import com.nebulohub.domain.comment.ReadCommentDto;
 import com.nebulohub.domain.post.CreatePostDto;
-import com.nebulohub.domain.post.UpdatePostDto; // <-- IMPORT ADICIONADO
+import com.nebulohub.domain.post.UpdatePostDto;
 import com.nebulohub.domain.post.dto.ReadPostDto;
 import com.nebulohub.domain.rating.SubmitRatingDto;
 import com.nebulohub.service.CommentService;
@@ -14,7 +14,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
-import org.springframework.security.access.prepost.PreAuthorize; // <-- IMPORT ADICIONADO
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -42,7 +42,8 @@ public class PostWebController {
 
     @GetMapping("/new")
     public String showNewPostForm(Model model) {
-        model.addAttribute("newPost", new CreatePostDto("", ""));
+        // **FIX:** Adicionado o terceiro argumento (imageUrl) como string vazia.
+        model.addAttribute("newPost", new CreatePostDto("", "", ""));
         return "posts/new";
     }
 
@@ -85,7 +86,6 @@ public class PostWebController {
         model.addAttribute("newComment", new CreateCommentDto("", id));
         model.addAttribute("newRating", new SubmitRatingDto(null, id));
 
-        // **NOVO:** Mensagem de sucesso ao editar
         if (model.containsAttribute("postSuccessKey")) {
             model.addAttribute("postSuccess", model.getAttribute("postSuccessKey"));
         }
@@ -93,28 +93,19 @@ public class PostWebController {
         return "posts/view";
     }
 
-    /**
-     * **NOVO MÉTODO**
-     * Exibe o formulário de edição de post.
-     * Somente o autor pode ver.
-     */
     @GetMapping("/{id}/edit")
     @PreAuthorize("@postRepository.findById(#id).get().getUser().getId() == principal.id")
     public String showEditPostForm(@PathVariable Long id, Model model) {
         ReadPostDto post = postService.findById(id);
-        // Preenche o DTO com os dados atuais
-        UpdatePostDto updateDto = new UpdatePostDto(post.title(), post.description());
+
+        // **FIX:** Adicionado o terceiro argumento (post.imageUrl()) ao construtor.
+        UpdatePostDto updateDto = new UpdatePostDto(post.title(), post.description(), post.imageUrl());
 
         model.addAttribute("postDto", updateDto);
         model.addAttribute("postId", id);
-        return "posts/edit"; // Novo template
+        return "posts/edit";
     }
 
-    /**
-     * **NOVO MÉTODO**
-     * Processa o formulário de edição de post.
-     * Somente o autor pode enviar.
-     */
     @PostMapping("/{id}/edit")
     @PreAuthorize("@postRepository.findById(#id).get().getUser().getId() == principal.id")
     public String handleEditPostForm(
@@ -132,7 +123,7 @@ public class PostWebController {
         try {
             postService.update(id, dto);
             redirectAttributes.addFlashAttribute("postSuccessKey", "post.edit.success");
-            return "redirect:/posts/" + id; // Volta para o post
+            return "redirect:/posts/" + id;
         } catch (Exception e) {
             model.addAttribute("postId", id);
             model.addAttribute("postErrorKey", "post.edit.error");
@@ -141,11 +132,6 @@ public class PostWebController {
         }
     }
 
-    /**
-     * **NOVO MÉTODO**
-     * Processa a exclusão do post.
-     * Autor ou Admin podem fazer isso.
-     */
     @PostMapping("/{id}/delete")
     @PreAuthorize("hasRole('ADMIN') or @postRepository.findById(#id).get().getUser().getId() == principal.id")
     public String handleDeletePost(
@@ -153,8 +139,7 @@ public class PostWebController {
             RedirectAttributes redirectAttributes
     ) {
         postService.delete(id);
-        // Adiciona uma mensagem de sucesso para a página de lista
         redirectAttributes.addFlashAttribute("postSuccess", "Post deleted successfully.");
-        return "redirect:/posts"; // Volta para a lista de posts
+        return "redirect:/posts";
     }
 }
