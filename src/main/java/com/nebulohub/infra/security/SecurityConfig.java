@@ -30,7 +30,6 @@ public class SecurityConfig {
 
     private final SecurityFilter securityFilter;
 
-    // ObjectMapper needs JavaTimeModule to serialize 'Instant' in ErrorResponse
     private final ObjectMapper objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
 
     /**
@@ -42,9 +41,8 @@ public class SecurityConfig {
     @Order(1)
     public SecurityFilterChain apiSecurityFilterChain(HttpSecurity http) throws Exception {
         return http
-                // This chain only applies to paths starting with /api/, /swagger-ui/, or /v3/api-docs/
                 .securityMatcher("/api/**", "/swagger-ui/**", "/v3/api-docs/**")
-                .csrf(AbstractHttpConfigurer::disable) // Disable CSRF for stateless API
+                .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         // Public API endpoints
@@ -55,11 +53,9 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/comments/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/ratings/**").permitAll()
                         .requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
-                        // All other API requests must be authenticated
                         .anyRequest().authenticated()
                 )
                 .exceptionHandling(ex -> ex
-                        // Handle API 401 Unauthorized
                         .authenticationEntryPoint((request, response, authException) -> {
                             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                             response.setContentType(MediaType.APPLICATION_JSON_VALUE);
@@ -69,7 +65,6 @@ public class SecurityConfig {
                             );
                             objectMapper.writeValue(response.getOutputStream(), errorResponse);
                         })
-                        // Handle API 403 Forbidden
                         .accessDeniedHandler((request, response, accessDeniedException) -> {
                             response.setStatus(HttpServletResponse.SC_FORBIDDEN);
                             response.setContentType(MediaType.APPLICATION_JSON_VALUE);
@@ -80,7 +75,6 @@ public class SecurityConfig {
                             objectMapper.writeValue(response.getOutputStream(), errorResponse);
                         })
                 )
-                // Add our custom JWT filter
                 .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
@@ -94,39 +88,41 @@ public class SecurityConfig {
     @Order(2)
     public SecurityFilterChain webSecurityFilterChain(HttpSecurity http) throws Exception {
         return http
-                // This chain applies to ALL other requests that API chain didn't catch
                 .authorizeHttpRequests(auth -> auth
-                        // Public web pages and static resources
-                        // We use simple string matchers, no deprecated AntPathRequestMatcher
+                        // Public static resources
+                        .requestMatchers(
+                                "/css/**",
+                                "/images/**",
+                                "/error/**",
+                                "/favicon.ico"
+                        ).permitAll()
+
+                        // Public web pages
                         .requestMatchers(
                                 "/",
                                 "/login",
-                                "/register", // We need to create this page later
-                                "/posts",
-                                "/posts/**",
-                                "/css/**",
-                                "/images/**",
-                                "/error/**", // Allow error pages
-                                "/favicon.ico"
+                                "/register" // We need to create this page later
                         ).permitAll()
+
+                        // ** THE FIX **
+                        // Explicitly permit GET to /posts and /posts/{id-with-digits}
+                        .requestMatchers(HttpMethod.GET, "/posts", "/posts/{id:[0-9]+}").permitAll()
+
                         // All other web pages require authentication
                         .anyRequest().authenticated()
                 )
                 // --- Form Login Config for Thymeleaf ---
                 .formLogin(form -> form
-                        .loginPage("/login") // Use our custom login page
-                        .loginProcessingUrl("/login") // The URL to submit the POST form to
-                        .defaultSuccessUrl("/posts?loginSuccess", true) // Redirect to posts on success
-                        .failureUrl("/login?error") // Redirect back on failure
+                        .loginPage("/login")
+                        .loginProcessingUrl("/login")
+                        .defaultSuccessUrl("/posts?loginSuccess", true)
+                        .failureUrl("/login?error")
                         .permitAll()
                 )
                 // --- Logout Config for Thymeleaf ---
                 .logout(logout -> logout
-                        .logoutRequestMatcher(request -> request.getMethod().equals("POST") && request.getServletPath().equals("/logout")) // Modern replacement
-
-                        // --- THIS IS THE FIX ---
-                        .logoutSuccessUrl("/posts?logout") // <-- CHANGED from "/login?logout"
-
+                        .logoutRequestMatcher(request -> request.getMethod().equals("POST") && request.getServletPath().equals("/logout"))
+                        .logoutSuccessUrl("/posts?logout") // Redirect to posts, not login
                         .invalidateHttpSession(true)
                         .deleteCookies("JSESSIONID")
                         .permitAll()
@@ -137,6 +133,7 @@ public class SecurityConfig {
                             response.sendRedirect("/login?forbidden");
                         })
                 )
+                // We DO NOT add the SecurityFilter here, this chain uses sessions.
                 .build();
     }
 
