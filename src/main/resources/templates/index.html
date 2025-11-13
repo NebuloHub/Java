@@ -1,11 +1,33 @@
-<!-- File: src/main/resources/templates/index.html (UPDATED) -->
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org"
-      th:replace="~{layout/main :: layout(pageTitle='Home', content=~{::main})}">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<!-- This <main> tag will be passed as the 'content' parameter -->
-<main>
-    <!-- This page just redirects. Content is in HomeController.java -->
-    <p>Redirecting to post feed...</p>
-</main>
+    <link rel="stylesheet" th:href="@{/css/theme.css}">
+    <title>NebuloHub</title>
+
+    <style>
+        /* Garante que o loader da página splash cubra tudo */
+        body {
+          background-color: #000;
+        }
+    </style>
+</head>
+<body>
+
+<div id="loader-wrapper" class="loader-wrapper">
+    <div class="spinner"></div>
+</div>
+
+<script th:inline="javascript">
+    window.addEventListener('load', function() {
+      setTimeout(function() {
+        // Redireciona para a página de posts
+        window.location.href = /*[[@{/posts}]]*/ '/posts';
+      }, 3000); // 3000ms = 3 segundos
+    });
+</script>
+
+</body>
 </html>
