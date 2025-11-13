@@ -1,0 +1,24 @@
+<!-- File: src/main/resources/templates/error/404.html -->
+<!-- This page is used for 404 Not Found errors -->
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/main :: layout(pageTitle='Not Found', content=~{::main})}">
+<main>
+    <div class="row justify-content-center mt-5">
+        <div class="col-lg-7 col-md-9">
+            <div class="card" style="background-color: var(--nh-dark-panel); border-color: var(--nh-border);">
+                <div class="card-body p-4 p-md-5 text-center">
+                    <h1 class="display-4" style="color: var(--nh-orange);">404</h1>
+                    <h2 class="card-title mb-3">Page Not Found</h2>
+                    <p class="lead text-muted">The page you are looking for doesn't exist or has been moved.</p>
+                    <p class="text-muted" th:if="${path}">
+                        <small>Path: <span th:text="${path}">/unknown</span></small>
+                    </p>
+                    <hr class="my-4" style="border-top-color: var(--nh-border);">
+                    <a th:href="@{/}" class="btn btn-primary">Go Home</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+</html>

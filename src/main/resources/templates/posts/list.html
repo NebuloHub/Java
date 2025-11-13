@@ -1,82 +1,71 @@
-<!-- File: src/main/resources/templates/posts/list.html (UPDATED) -->
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
       th:replace="~{layout/main :: layout(pageTitle=#{post.list.title}, content=~{::main})}">
 
-<!-- This <main> tag will be passed as the 'content' parameter -->
 <main>
-    <!-- Page Header -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h1 class="mb-0" th:text="#{post.list.title}">Startup Idea Feed</h1>
-            <p class="lead text-muted" th:text="#{post.list.subtitle}">See the latest ideas from the community.</p>
-        </div>
-        <!-- Show 'New Post' button only if logged in -->
-        <div sec:authorize="isAuthenticated()">
-            <a th:href="@{/posts/new}" class="btn btn-primary" th:text="#{post.list.new}">New Post</a>
-        </div>
-    </div>
 
-    <!--
-      NEW: Centered, single-column feed
-      This centers the content in a narrower, feed-like column.
-    -->
     <div class="row justify-content-center">
-        <div class="col-lg-7 col-md-9">
+        <div class="col-lg-6 col-md-8 mt-5">
 
-            <!-- Post List -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h1 class="mb-0" th:text="#{post.list.title}">Startup Idea Feed</h1>
+                    <p class="lead text-muted" th:text="#{post.list.subtitle}">See the latest ideas from the community.</p>
+                </div>
+                <div sec:authorize="isAuthenticated()">
+                    <a th:href="@{/posts/new}" class="btn btn-outline-orange" th:text="#{post.list.new}">New Post</a>
+                </div>
+            </div>
+
             <div class="post-feed">
 
-                <!-- Loop over each post -->
                 <div th:each="post : ${postPage.content}" class="card post-card mb-4">
 
-                    <!-- NEW: Card Header for Author -->
                     <div class="card-header post-header">
                         <div>
-                            <!-- TODO: Add profile picture -->
                             <span class="fw-bold" th:text="${post.author.username}">authorUsername</span>
                         </div>
                         <small class="text-muted" th:text="${#temporals.format(post.createdAt, 'dd MMM yyyy')}">10 Jan 2025</small>
                     </div>
 
-                    <!-- Card Body for Title & Description -->
                     <div class="card-body">
                         <h4 class="card-title">
                             <a th:href="@{|/posts/${post.id}|}" th:text="${post.title}">Post Title Goes Here</a>
                         </h4>
                         <p class="card-text" th:text="${post.description}">
                             This is the full description of the startup idea.
-                            It is no longer truncated.
                         </p>
                     </div>
 
-                    <!-- NEW: Card Footer for Stats (Rating & Comments) -->
                     <div class="card-footer post-stats">
-                        <!-- Rating -->
                         <span class="text-muted">
-                            <strong>Rating:</strong>
+                            <strong class="rating-highlight">Rating:</strong>
                             <span th:text="${#numbers.formatDecimal(post.avgRating, 1, 1)}">8.5</span> / 10
                             (<span th:text="${post.ratingCount}">10</span> votes)
                         </span>
 
-                        <!-- Comment Link (Placeholder) -->
-                        <a th:href="@{|/posts/${post.id}#comments|}" class="text-muted">
-                            <!-- TODO: Add real comment count to ReadPostDto -->
-                            View Comments
+                        <a th:href="@{|/posts/${post.id}#comments|}" class="text-muted"
+                           th:if="${post.commentCount > 0}">
+                            View all <span th:text="${post.commentCount}">0</span> comments
                         </a>
                     </div>
-                </div>
 
-                <!-- No Posts Message -->
-                <div th:if="${postPage.empty}" class="col-12">
-                    <div class="text-center p-5">
-                        <h4 th:text="#{post.noPosts}">No ideas have been posted yet. Be the first!</h4>
+                    <div th:if="${!post.recentComments.isEmpty()}" class="card-body pt-0">
+                        <hr class="comment-divider">
+                        <div th:replace="~{fragments/comment-list :: commentList(comments=${post.recentComments})}">
+                            <div class="comment-item">
+                                <p class="mb-0"><a href="#" class="fw-bold text-decoration-none">demo_user</a>: This is a comment.</p>
+                            </div>
+                        </div>
                     </div>
-                </div>
 
+                </div> <div th:if="${postPage.empty}" class="col-12">
+                <div class="text-center p-5">
+                    <h4 th:text="#{post.noPosts}">No ideas have been posted yet. Be the first!</h4>
+                </div>
             </div>
 
-            <!-- TODO: Add Pagination -->
+            </div>
 
         </div>
     </div>

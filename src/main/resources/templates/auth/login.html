@@ -1,13 +1,17 @@
-<!-- File: src/main/resources/templates/auth/login.html (UPDATED) -->
+<!-- File: src/main/resources/templates/auth/login.html (FIXED) -->
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org"
       th:replace="~{layout/main :: layout(pageTitle=#{header.login}, content=~{::main})}">
 
 <!-- This <main> tag will be passed as the 'content' parameter -->
 <main>
-    <div class="row justify-content-center">
+    <!--
+      FIX: Added 'mt-5' to this div to add space between
+      the header and the login card.
+    -->
+    <div class="row justify-content-center mt-5">
         <div class="col-lg-5 col-md-8">
-            <div class="card shadow-lg">
+            <div class="card shadow-lg" style="background-color: var(--nh-dark-panel); border-color: var(--nh-border);">
                 <div class="card-body p-4 p-md-5">
                     <h2 class="card-title text-center mb-4" th:text="#{header.login}">Login</h2>
 
@@ -42,7 +46,7 @@
                         </div>
                     </form>
 
-                    <hr class="my-4">
+                    <hr class="my-4" style="border-top-color: var(--nh-border);">
 
                     <div class="text-center">
                         <small class="text-muted">Don't have an account?</small>

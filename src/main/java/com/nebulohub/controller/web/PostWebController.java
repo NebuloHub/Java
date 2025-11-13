@@ -1,6 +1,6 @@
 package com.nebulohub.controller.web;
 
-import com.nebulohub.domain.post.ReadPostDto;
+
 import com.nebulohub.service.PostService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -27,7 +27,7 @@ public class PostWebController {
             @PageableDefault(size = 10, sort = "createdAt") Pageable pageable
     ) {
         // 1. Get the page of posts from the service
-        Page<ReadPostDto> postPage = postService.findAll(pageable);
+        Page<com.nebulohub.domain.post.dto.ReadPostDto> postPage = postService.findAll(pageable);
         
         // 2. Add the page data to the model
         model.addAttribute("postPage", postPage);
