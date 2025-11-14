@@ -1,4 +1,4 @@
-/* File: src/main/resources/static/css/theme.css (COMPLETE & UPDATED ANIMATION) */
+/* File: src/main/resources/static/css/theme.css (COMPLETE & CLICK-FIX) */
 
 :root {
   --nh-orange: #FF9900; /* Main brand orange */
@@ -9,30 +9,29 @@
   --nh-text-secondary: #AAAAAA;  /* Muted text */
 }
 
+/* 1. O body tem um fundo preto simples */
 body {
-  /* Complex Background */
-  background-color: var(--nh-dark-bg); /* Fallback */
-
-  /* Stacked background */
-  background-image:
-    /* 1. Top-left black gradient (faded) */
-    radial-gradient(at 0% 0%, rgba(0,0,0,0.7) 0%, transparent 50%),
-
-    /* 2. Bottom-right orange gradient (subtle) */
-    radial-gradient(at 100% 100%, rgba(255, 153, 0, 0.25) 0%, transparent 50%),
-
-    /* 3. The main image (faded) */
-    url('../images/Logo.jpg');
-
-  background-size: cover;
-  background-position: center center;
-  background-attachment: fixed; /* This is key */
-  background-repeat: no-repeat;
-  /* --- End of Background --- */
-
+  background-color: var(--nh-dark-bg);
   color: var(--nh-text-primary);
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 }
+
+/* 2. O ::before DO BODY é a CAMADA DE BAIXO (LARANJA) */
+body::before {
+  content: '';
+  position: fixed;
+  top: 0; left: 0; width: 100%; height: 100%;
+  z-index: -1;
+
+  background-image:
+    radial-gradient(at 0% 0%, rgba(0,0,0,0.7) 0%, transparent 50%),
+    radial-gradient(at 100% 100%, rgba(255, 153, 0, 0.25) 0%, transparent 50%),
+    url('../images/Logo.jpg');
+  background-size: cover;
+  background-position: center center;
+  background-attachment: fixed;
+}
+
 
 a {
   color: var(--nh-orange);
@@ -47,6 +46,9 @@ a:hover {
 .navbar-dark {
   background-color: var(--nh-dark-panel) !important;
   border-bottom: 1px solid var(--nh-border);
+  position: sticky;
+  top: 0;
+  z-index: 10; /* Fica no topo de tudo */
 }
 .navbar-brand img {
   max-height: 40px;
@@ -69,7 +71,7 @@ a:hover {
 .btn-primary {
   background-color: var(--nh-orange);
   border-color: var(--nh-orange);
-  color: #000; /* Black text on orange for high contrast */
+  color: #000;
   font-weight: 700;
 }
 .btn-primary:hover, .btn-primary:focus {
@@ -89,15 +91,14 @@ a:hover {
   border-color: var(--nh-text-secondary);
 }
 
-/* "New Post" button: Grey background, orange border, orange text */
 .btn-outline-orange {
   color: var(--nh-orange);
   border-color: var(--nh-orange);
-  background-color: var(--nh-dark-panel); /* Dark grey background */
+  background-color: var(--nh-dark-panel);
   font-weight: 600;
 }
 .btn-outline-orange:hover, .btn-outline-orange:focus {
-  color: #000; /* Black text on hover */
+  color: #000;
   background-color: var(--nh-orange);
   border-color: var(--nh-orange);
   box-shadow: 0 0 12px rgba(255, 153, 0, 0.4);
@@ -410,40 +411,28 @@ p.formatted-text {
 }
 
 
-/* --- **FIX** Loader / Splash Screen (ANIMAÇÃO DE CRESCIMENTO) --- */
+/* --- Loader / Splash Screen --- */
 .loader-wrapper {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-
-  /* Fundo preto base */
   background-color: #000;
-
-  /* Gradiente "Black Hole" */
   background-image: radial-gradient(
-    circle at 50% 100%, /* Fixo no centro-baixo */
+    circle at 50% 100%,
     var(--nh-orange) 0%,
     rgba(255, 153, 0, 0.7) 15%,
     rgba(255, 100, 0, 0.3) 30%,
-    rgba(0,0,0,0) 50% /* Termina em preto transparente */
+    rgba(0,0,0,0) 50%
   );
   background-repeat: no-repeat;
-
-  /* Posição fixa no centro-baixo */
   background-position: 50% 100%;
-
-  /* Tamanho inicial (invisível) */
   background-size: 0% 0%;
-
   display: flex;
   justify-content: center;
   align-items: center;
   z-index: 9999;
-
-  /* Toca a animação "engulf" por 3s */
-  /* Combina com o script de 3s no index.html */
   animation: blackHoleEngulf 3s ease-out forwards;
 }
 
@@ -453,43 +442,150 @@ p.formatted-text {
   border-radius: 50%;
   border: 6px solid var(--nh-border);
   border-top-color: var(--nh-orange);
-
   animation: spin 1s linear infinite;
-
   box-shadow: 0 0 25px var(--nh-orange),
               0 0 40px rgba(255, 153, 0, 0.7);
   z-index: 10000;
 }
 
-/* Animação de rotação (para o spinner) */
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
 
-/* **ANIMAÇÃO ATUALIZADA** para o gradiente "crescer" */
 @keyframes blackHoleEngulf {
   0% {
-    background-size: 0% 0%; /* Começa invisível */
+    background-size: 0% 0%;
   }
   100% {
-    /* Cresce para 200% da largura/altura.
-      Como o gradiente está posicionado em '100%' (baixo),
-      um raio de 100% (metade do tamanho) cobrirá 50% da altura da tela.
-    */
     background-size: 200% 200%;
   }
 }
+/* (Fim das regras do Loader) */
 
-/* Animações de Fade (não mais usadas por index.html) */
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+
+/* --- **HERO SECTION (BLACK FADE-OUT)** --- */
+
+.hero-section {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+
+  background-color: var(--nh-dark-bg);
+
+  z-index: 1;
+
+  animation: fade-out-hero linear;
+  animation-timeline: scroll(root);
+  animation-range-start: 10vh;
+  animation-range-end: 90vh;
+  animation-fill-mode: forwards;
 }
-@keyframes fadeOut {
-  from { opacity: 1; }
-  to { opacity: 0; }
+
+/* **A CORREÇÃO (fade-out da camada preta)** */
+@keyframes fade-out-hero {
+  from {
+    opacity: 1;
+    pointer-events: auto; /* Clicável no início */
+  }
+  to {
+    opacity: 0;
+    pointer-events: none; /* Não clicável no fim */
+  }
 }
-.loader-hidden {
-  animation: fadeOut 0.7s ease-out forwards;
-  pointer-events: none;
+
+.hero-content {
+  color: white;
+  padding: 1rem;
+
+  /* **A CORREÇÃO (fade-out do texto)** */
+  animation: fade-out-hero-content linear;
+  animation-timeline: scroll(root);
+  animation-range-start: 10vh;
+  animation-range-end: 70vh;
+  animation-fill-mode: forwards;
+}
+
+@keyframes fade-out-hero-content {
+  from {
+    opacity: 1;
+    pointer-events: auto; /* Clicável no início */
+  }
+  to {
+    opacity: 0;
+    pointer-events: none; /* Não clicável no fim */
+  }
+}
+
+.hero-title {
+  font-size: 4.5rem;
+  font-weight: 700;
+  color: var(--nh-orange);
+  text-shadow: 0 0 20px rgba(0, 0, 0, 0.7);
+}
+
+.hero-subtitle {
+  font-size: 1.75rem;
+  font-weight: 300;
+  color: white;
+  text-shadow: 0 0 10px rgba(0, 0, 0, 0.7);
+  margin-top: 0.5rem;
+}
+
+.hero-scroll {
+  margin-top: 4rem;
+  font-weight: 500;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: white;
+  animation: bounce 2.5s infinite;
+}
+
+@keyframes bounce {
+  0%, 20%, 50%, 80%, 100% {
+    transform: translateY(0);
+    opacity: 0.8;
+  }
+  40% {
+    transform: translateY(-15px);
+    opacity: 1;
+  }
+  60% {
+    transform: translateY(-10px);
+    opacity: 1;
+  }
+}
+
+.post-feed-wrapper {
+  background-color: transparent;
+  padding-top: 3rem;
+  position: relative;
+  z-index: 0;
+  margin-top: 100vh;
+}
+
+/* **FIX: ESTILOS DE PAGINAÇÃO (Re-adicionados)** */
+.pagination {
+  --bs-pagination-color: var(--nh-text-secondary);
+  --bs-pagination-bg: var(--nh-dark-panel);
+  --bs-pagination-border-color: var(--nh-border);
+  --bs-pagination-hover-color: var(--nh-orange);
+  --bs-pagination-hover-bg: var(--nh-dark-bg);
+  --bs-pagination-hover-border-color: var(--nh-orange);
+  --bs-pagination-focus-color: var(--nh-orange);
+  --bs-pagination-focus-bg: var(--nh-dark-bg);
+  --bs-pagination-focus-box-shadow: 0 0 0 0.25rem rgba(255, 153, 0, 0.25);
+  --bs-pagination-active-color: #000;
+  --bs-pagination-active-bg: var(--nh-orange);
+  --bs-pagination-active-border-color: var(--nh-orange);
+  --bs-pagination-disabled-color: #555;
+  --bs-pagination-disabled-bg: var(--nh-dark-panel);
+  --bs-pagination-disabled-border-color: var(--nh-border);
 }
