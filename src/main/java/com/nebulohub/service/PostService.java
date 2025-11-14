@@ -14,6 +14,8 @@ import com.nebulohub.domain.user.User;
 import com.nebulohub.domain.user.UserRepository;
 import com.nebulohub.exception.NotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict; // <-- IMPORT ADICIONADO
+import org.springframework.cache.annotation.Cacheable; // <-- IMPORT ADICIONADO
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -33,6 +35,12 @@ public class PostService {
     private final RatingRepository ratingRepository;
     private final CommentRepository commentRepository;
 
+    /**
+     * **CACHE APLICADO AQUI**
+     * Os resultados deste método (para cada 'pageable' diferente)
+     * serão guardados num cache chamado "posts".
+     */
+    @Cacheable(cacheNames = "posts")
     public Page<ReadPostDto> findAll(Pageable pageable) {
         Page<Post> postPage = postRepository.findAllWithUserOrderByCreatedAtDesc(pageable);
 
@@ -72,22 +80,33 @@ public class PostService {
                 .orElseThrow(() -> new NotFoundException("Post not found with id: " + id));
     }
 
+    /**
+     * **EVICT CACHE**
+     * Quando um post é criado, o cache "posts" (que contém
+     * as listas de posts) é limpo.
+     */
     @Transactional
+    @CacheEvict(cacheNames = "posts", allEntries = true)
     public ReadPostDto create(CreatePostDto dto, Authentication authentication) {
         User author = (User) authentication.getPrincipal();
 
         Post newPost = new Post();
         newPost.setTitle(dto.title());
         newPost.setDescription(dto.description());
-        newPost.setImageUrl(dto.imageUrl()); // <-- LÓGICA ADICIONADA
+        newPost.setImageUrl(dto.imageUrl());
         newPost.setUser(author);
 
         Post savedPost = postRepository.save(newPost);
         return new ReadPostDto(savedPost);
     }
 
+    /**
+     * **EVICT CACHE**
+     * Quando um post é atualizado, o cache "posts" é limpo.
+     */
     @Transactional
     @PreAuthorize("@postRepository.findById(#id).get().getUser().getId() == principal.id")
+    @CacheEvict(cacheNames = "posts", allEntries = true)
     public ReadPostDto update(Long id, UpdatePostDto dto) {
         Post post = postRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Post not found with id: " + id));
@@ -98,7 +117,6 @@ public class PostService {
         if (dto.description() != null) {
             post.setDescription(dto.description());
         }
-        // **LÓGICA ADICIONADA** (permite limpar a URL passando uma string vazia)
         if (dto.imageUrl() != null) {
             post.setImageUrl(dto.imageUrl());
         }
@@ -107,8 +125,13 @@ public class PostService {
         return new ReadPostDto(updatedPost);
     }
 
+    /**
+     * **EVICT CACHE**
+     * Quando um post é deletado, o cache "posts" é limpo.
+     */
     @Transactional
     @PreAuthorize("hasRole('ADMIN') or @postRepository.findById(#id).get().getUser().getId() == principal.id")
+    @CacheEvict(cacheNames = "posts", allEntries = true)
     public void delete(Long id) {
         if (!postRepository.existsById(id)) {
             throw new NotFoundException("Post not found with id: " + id);
