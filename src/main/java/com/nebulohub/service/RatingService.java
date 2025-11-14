@@ -11,7 +11,7 @@ import com.nebulohub.domain.user.UserRepository;
 import com.nebulohub.exception.BusinessException;
 import com.nebulohub.exception.NotFoundException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.cache.annotation.CacheEvict; // <-- IMPORT ADICIONADO
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -31,12 +31,11 @@ public class RatingService {
     private final PostService postService;
 
     /**
-     * **EVICT CACHE**
-     * Limpa o cache "posts" porque uma nova avaliação
-     * muda o avgRating e o ratingCount.
+     * **EVICT CACHE (ATUALIZADO)**
+     * Limpa os caches "posts" e "userPosts".
      */
     @Transactional
-    @CacheEvict(cacheNames = "posts", allEntries = true)
+    @CacheEvict(cacheNames = {"posts", "userPosts"}, allEntries = true)
     public ReadRatingDto createOrUpdate(SubmitRatingDto dto, Authentication authentication) {
         User user = (User) authentication.getPrincipal();
 
@@ -66,13 +65,12 @@ public class RatingService {
     }
 
     /**
-     * **EVICT CACHE**
-     * Limpa o cache "posts" porque uma avaliação deletada
-     * muda o avgRating e o ratingCount.
+     * **EVICT CACHE (ATUALIZADO)**
+     * Limpa os caches "posts" e "userPosts".
      */
     @Transactional
     @PreAuthorize("hasRole('ADMIN') or @ratingRepository.findById(#ratingId).get().getUser().getId() == principal.id")
-    @CacheEvict(cacheNames = "posts", allEntries = true)
+    @CacheEvict(cacheNames = {"posts", "userPosts"}, allEntries = true)
     public void delete(Long ratingId) {
         Rating rating = ratingRepository.findById(ratingId)
                 .orElseThrow(() -> new NotFoundException("Rating not found with id: " + ratingId));

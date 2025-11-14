@@ -6,6 +6,8 @@ import com.nebulohub.exception.DuplicateEntryException;
 import com.nebulohub.exception.NotFoundException;
 import com.nebulohub.infra.security.LoginDto;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -43,6 +45,7 @@ public class UserService {
         return userRepository.findAll(pageable).map(ReadUserDto::new);
     }
 
+    @Cacheable(cacheNames = "userProfile", key = "#id")
     public ReadUserDto findById(Long id) {
         return userRepository.findById(id)
                 .map(ReadUserDto::new)
@@ -72,6 +75,7 @@ public class UserService {
 
     @Transactional
     @PreAuthorize("#id == principal.id")
+    @CacheEvict(cacheNames = "userProfile", key = "#id")
     public ReadUserDto update(Long id, UpdateUserDto dto) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("User not found with id: " + id));
@@ -92,11 +96,6 @@ public class UserService {
             user.setEmail(dto.email());
         }
 
-        /**
-         * **FIX:**
-         * A senha só é atualizada se o campo não for nulo E não estiver em branco.
-         * Se estiver em branco (para "manter a senha atual"), esta lógica é pulada.
-         */
         if (dto.password() != null && !dto.password().isBlank()) {
             user.setPassword(passwordEncoder.encode(dto.password()));
         }
@@ -105,12 +104,14 @@ public class UserService {
             user.setRole(dto.role());
         }
 
+        // **A CORREÇÃO:** Salvando o objeto 'user' que acabamos de modificar.
         User updatedUser = userRepository.save(user);
         return new ReadUserDto(updatedUser);
     }
 
     @Transactional
     @PreAuthorize("hasRole('ADMIN') or #id == principal.id")
+    @CacheEvict(cacheNames = "userProfile", key = "#id")
     public void delete(Long id) {
         if (!userRepository.existsById(id)) {
             throw new NotFoundException("User not found with id: " + id);

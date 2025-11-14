@@ -7,7 +7,8 @@ import com.nebulohub.domain.user.User;
 import com.nebulohub.domain.user.UserRepository;
 import com.nebulohub.exception.NotFoundException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.cache.annotation.CacheEvict; // <-- IMPORT ADICIONADO
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -23,13 +24,8 @@ public class CommentService {
     private final UserRepository userRepository;
     private final PostRepository postRepository;
 
-    /**
-     * **EVICT CACHE**
-     * Limpa o cache "posts" porque um novo comentário
-     * muda a contagem e os comentários recentes.
-     */
     @Transactional
-    @CacheEvict(cacheNames = "posts", allEntries = true)
+    @CacheEvict(cacheNames = {"posts", "userPosts", "userRecentComments"}, allEntries = true)
     public ReadCommentDto create(CreateCommentDto dto, Authentication authentication) {
         User user = (User) authentication.getPrincipal();
 
@@ -45,14 +41,9 @@ public class CommentService {
         return new ReadCommentDto(savedComment);
     }
 
-    /**
-     * **EVICT CACHE**
-     * Limpa o cache "posts" porque um comentário editado
-     * pode aparecer nos "comentários recentes".
-     */
     @Transactional
     @PreAuthorize("hasRole('ADMIN') or @commentRepository.findById(#commentId).get().getUser().getId() == principal.id")
-    @CacheEvict(cacheNames = "posts", allEntries = true)
+    @CacheEvict(cacheNames = {"posts", "userPosts", "userRecentComments"}, allEntries = true)
     public ReadCommentDto update(Long commentId, UpdateCommentDto dto) {
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new NotFoundException("Comment not found with id: " + commentId));
@@ -62,14 +53,9 @@ public class CommentService {
         return new ReadCommentDto(updatedComment);
     }
 
-    /**
-     * **EVICT CACHE**
-     * Limpa o cache "posts" porque um comentário deletado
-     * muda a contagem e os comentários recentes.
-     */
     @Transactional
     @PreAuthorize("hasRole('ADMIN') or @commentRepository.findById(#commentId).get().getUser().getId() == principal.id")
-    @CacheEvict(cacheNames = "posts", allEntries = true)
+    @CacheEvict(cacheNames = {"posts", "userPosts", "userRecentComments"}, allEntries = true)
     public void delete(Long commentId) {
         if (!commentRepository.existsById(commentId)) {
             throw new NotFoundException("Comment not found with id: " + commentId);
@@ -84,6 +70,7 @@ public class CommentService {
         return commentRepository.findAllByPostIdWithUser(postId, pageable).map(ReadCommentDto::new);
     }
 
+    @Cacheable(cacheNames = "userRecentComments", key = "#userId")
     public Page<ReadCommentDto> getCommentsFromUser(Long userId, Pageable pageable) {
         if (!userRepository.existsById(userId)) {
             throw new NotFoundException("User not found with id: " + userId);
