@@ -1,5 +1,7 @@
 package com.nebulohub.service;
 
+// --- Imports ---
+import com.nebulohub.config.RabbitMQConfig; // <-- IMPORT ADDED
 import com.nebulohub.domain.post.Post;
 import com.nebulohub.domain.post.PostRepository;
 import com.nebulohub.domain.rating.Rating;
@@ -10,7 +12,9 @@ import com.nebulohub.domain.user.User;
 import com.nebulohub.domain.user.UserRepository;
 import com.nebulohub.exception.BusinessException;
 import com.nebulohub.exception.NotFoundException;
+import com.nebulohub.service.message.PostRatingUpdateMessage; // <-- IMPORT ADDED
 import lombok.RequiredArgsConstructor;
+import org.springframework.amqp.rabbit.core.RabbitTemplate; // <-- IMPORT ADDED
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -28,7 +32,12 @@ public class RatingService {
     private final RatingRepository ratingRepository;
     private final UserRepository userRepository;
     private final PostRepository postRepository;
-    private final PostService postService;
+    // private final PostService postService; // We no longer call this directly
+
+    // --- NEWLY INJECTED ---
+    private final RabbitTemplate rabbitTemplate;
+    private final RabbitMQConfig rabbitMQConfig; // Not strictly needed, but good for constants
+    private final PostService postService; // <-- RE-ADD or KEEP this. Listener needs it. My mistake. It's the *call* we're removing.
 
     /**
      * **EVICT CACHE (ATUALIZADO)**
@@ -60,7 +69,13 @@ public class RatingService {
         }
 
         Rating savedRating = ratingRepository.save(ratingToSave);
-        postService.updatePostRatingStats(dto.postId());
+
+        // --- OLD SYNCHRONOUS CALL (REMOVED) ---
+        // postService.updatePostRatingStats(dto.postId());
+
+        // --- NEW ASYNCHRONOUS CALL (ADDED) ---
+        publishRatingUpdate(dto.postId());
+
         return new ReadRatingDto(savedRating);
     }
 
@@ -77,8 +92,29 @@ public class RatingService {
 
         Long postId = rating.getPost().getId();
         ratingRepository.delete(rating);
-        postService.updatePostRatingStats(postId);
+
+        // --- OLD SYNCHRONOUS CALL (REMOVED) ---
+        // postService.updatePostRatingStats(postId);
+
+        // --- NEW ASYNCHRONOUS CALL (ADDED) ---
+        publishRatingUpdate(postId);
     }
+
+    /**
+     * **NEW PRIVATE HELPER METHOD**
+     * Publishes a message to RabbitMQ to update the stats for a post.
+     */
+    private void publishRatingUpdate(Long postId) {
+        PostRatingUpdateMessage message = new PostRatingUpdateMessage(postId);
+        rabbitTemplate.convertAndSend(
+                RabbitMQConfig.EXCHANGE_NAME,
+                RabbitMQConfig.ROUTING_KEY_POST_RATING_UPDATE,
+                message
+        );
+    }
+
+
+    // --- NO CHANGES to the methods below ---
 
     public Page<ReadRatingDto> getRatingsForPost(Long postId, Pageable pageable) {
         if (!postRepository.existsById(postId)) {
