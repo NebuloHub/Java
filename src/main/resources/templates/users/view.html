@@ -63,7 +63,6 @@
                                 </div>
                             </div>
                         </div>
-
                     </div> <div class="col-md-7">
 
                     <h2 class="profile-section-title" th:text="#{user.profile.postsTitle(${profileUser.username})}">
@@ -82,7 +81,7 @@
                                 <h4 class="card-title">
                                     <a th:href="@{|/posts/${post.id}|}" th:text="${post.title}">Post Title</a>
                                 </h4>
-                                <p class-="card-text formatted-text"
+                                <p class="card-text formatted-text"
                                    th:text="${#strings.length(post.description) > 300} ?
                                                   (${#strings.substring(post.description, 0, 300)} + '...') :
                                                   ${post.description}">
@@ -105,17 +104,16 @@
                     <nav th:if="${postPage.totalPages > 1}" aria-label="Post page navigation" class="mt-4">
                         <ul class="pagination justify-content-center">
                             <li class="page-item" th:classappend="${postPage.first} ? 'disabled'">
-                                <a class="page-link" th:href="@{|/users/${profileUser.id}(page=${postPage.number - 1})|}">&laquo;</a>
+                                <a class="page-link" th:href="@{|/users/${profileUser.id}?page=${postPage.number - 1}|}">&laquo;</a>
                             </li>
                             <li th:each="i : ${#numbers.sequence(0, postPage.totalPages - 1)}"
                                 class="page-item" th:classappend="${i == postPage.number} ? 'active'">
-                                <a class="page-link" th:href="@{|/users/${profileUser.id}(page=${i})|}" th:text="${i + 1}">1</a>
+                                <a class="page-link" th:href="@{|/users/${profileUser.id}?page=${i}|}" th:text="${i + 1}">1</a>
                             </li>
                             <li class="page-item" th:classappend="${postPage.last} ? 'disabled'">
-                                <a class="page-link" th:href="@{|/users/${profileUser.id}(page=${postPage.number + 1})|}">&raquo;</a>
+                                <a class="page-link" th:href="@{|/users/${profileUser.id}?page=${postPage.number + 1}|}">&raquo;</a>
                             </li>
                         </ul>
                     </nav>
-
                 </div> </div> </div> </div> </div> </main>
 </html>

@@ -54,6 +54,10 @@ public class Post {
     @Column(name = "rating_count", nullable = false)
     private Integer ratingCount = 0;
 
+    @NotNull
+    @Column(name = "comment_count", nullable = false)
+    private Integer commentCount = 0;
+
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;

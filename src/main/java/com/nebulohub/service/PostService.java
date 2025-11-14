@@ -46,9 +46,9 @@ public class PostService {
                     .map(ReadCommentDto::new)
                     .collect(Collectors.toList());
 
-            long commentCount = commentRepository.countByPostId(post.getId());
+//            long commentCount = commentRepository.countByPostId(post.getId());
 
-            return new ReadPostDto(post, commentCount, recentComments);
+            return new ReadPostDto(post, recentComments);
         });
     }
 
@@ -70,8 +70,9 @@ public class PostService {
                     .stream()
                     .map(ReadCommentDto::new)
                     .collect(Collectors.toList());
-            long commentCount = commentRepository.countByPostId(post.getId());
-            return new ReadPostDto(post, commentCount, recentComments);
+//            long commentCount = commentRepository.countByPostId(post.getId());
+
+            return new ReadPostDto(post, recentComments);
         });
     }
 
@@ -155,6 +156,18 @@ public class PostService {
         post.setRatingCount(ratingCount);
         post.setAvgRating(avgRating);
 
+        postRepository.save(post);
+    }
+
+    @Transactional
+    public void updatePostCommentStats(Long postId) {
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new NotFoundException("Post not found with id: " + postId));
+
+        // This is the query we are removing from the feed
+        long commentCount = commentRepository.countByPostId(postId);
+
+        post.setCommentCount((int) commentCount);
         postRepository.save(post);
     }
 }

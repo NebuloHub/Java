@@ -1,4 +1,3 @@
-// File: src/main/java/com/nebulohub/controller/web/CommentWebController.java (NEW FILE)
 package com.nebulohub.controller.web;
 
 
@@ -46,6 +45,29 @@ public class CommentWebController {
             redirectAttributes.addFlashAttribute("commentSuccess", "Comment posted!");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("commentError", "Error posting comment: " + e.getMessage());
+        }
+
+        // Redirect back to the post page, jumping to the comments section
+        return "redirect:/posts/" + postId + "#comments";
+    }
+
+    /**
+     * **--- NEW METHOD ---**
+     * Handles the form submission for deleting a comment.
+     * The security is handled by @PreAuthorize on the service layer.
+     */
+    @PostMapping("/{postId}/delete/{commentId}")
+    public String deleteComment(
+            @PathVariable Long postId,
+            @PathVariable Long commentId,
+            RedirectAttributes redirectAttributes
+    ) {
+        try {
+            // Security is checked inside the service method
+            commentService.delete(commentId);
+            redirectAttributes.addFlashAttribute("commentSuccess", "Comment deleted.");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("commentError", "Error deleting comment: " + e.getMessage());
         }
 
         // Redirect back to the post page, jumping to the comments section

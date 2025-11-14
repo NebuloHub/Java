@@ -15,14 +15,22 @@ import org.springframework.context.annotation.Configuration;
 public class RabbitMQConfig {
 
     public static final String EXCHANGE_NAME = "ex.nebulohub.direct";
+
+    // --- RATING (Existing) ---
     public static final String QUEUE_POST_RATING_UPDATE = "q.post-rating-update";
     public static final String ROUTING_KEY_POST_RATING_UPDATE = "post-rating-update";
+
+    // --- COMMENT (New) ---
+    public static final String QUEUE_POST_COMMENT_UPDATE = "q.post-comment-update";
+    public static final String ROUTING_KEY_POST_COMMENT_UPDATE = "post-comment-update";
+
 
     @Bean
     public DirectExchange directExchange() {
         return new DirectExchange(EXCHANGE_NAME);
     }
 
+    // --- Rating Queue (Existing) ---
     @Bean
     public Queue postRatingUpdateQueue() {
         return new Queue(QUEUE_POST_RATING_UPDATE);
@@ -35,15 +43,27 @@ public class RabbitMQConfig {
                 .with(ROUTING_KEY_POST_RATING_UPDATE);
     }
 
+    // --- Comment Queue (New) ---
+    @Bean
+    public Queue postCommentUpdateQueue() {
+        return new Queue(QUEUE_POST_COMMENT_UPDATE);
+    }
+
+    @Bean
+    public Binding postCommentUpdateBinding(Queue postCommentUpdateQueue, DirectExchange directExchange) {
+        return BindingBuilder.bind(postCommentUpdateQueue)
+                .to(directExchange)
+                .with(ROUTING_KEY_POST_COMMENT_UPDATE);
+    }
+
+    // --- Shared Beans (Existing) ---
     @Bean
     public MessageConverter jsonMessageConverter() {
-        // This ensures our message DTOs are serialized to JSON
         return new Jackson2JsonMessageConverter();
     }
 
     @Bean
     public RabbitTemplate rabbitTemplate(ConnectionFactory connectionFactory, MessageConverter messageConverter) {
-        // This configures the default RabbitTemplate to use JSON
         RabbitTemplate rabbitTemplate = new RabbitTemplate(connectionFactory);
         rabbitTemplate.setMessageConverter(messageConverter);
         return rabbitTemplate;
