@@ -3,131 +3,130 @@
       th:replace="~{layout/main :: layout(pageTitle=${post.title}, content=~{::main})}">
 
 <main>
+    <div class="container-fluid">
+        <div class="row justify-content-center">
+            <div class="col-lg-7 col-md-9 mt-5"> <div th:if="${postSuccessKey}" class="alert alert-success" th:text="#{${postSuccessKey}}"></div>
 
-    <div class="row justify-content-center">
-        <div class="col-lg-7 col-md-9 mt-5"> <div th:if="${postSuccessKey}" class="alert alert-success" th:text="#{${postSuccessKey}}"></div>
-
-            <div class="card post-card post-card-top">
-                <div class="card-header post-header">
-                    <div>
-                        <a th:href="@{|/users/${post.author.id}|}" class="fw-bold text-decoration-none" th:text="${post.author.username}">authorUsername</a>
+                <div class="card post-card post-card-top">
+                    <div class="card-header post-header">
+                        <div>
+                            <a th:href="@{|/users/${post.author.id}|}" class="fw-bold text-decoration-none" th:text="${post.author.username}">authorUsername</a>
+                        </div>
+                        <small class="text-muted" th:text="${#temporals.format(post.createdAt, 'dd MMM yyyy')}">10 Jan 2025</small>
                     </div>
-                    <small class="text-muted" th:text="${#temporals.format(post.createdAt, 'dd MMM yyyy')}">10 Jan 2025</small>
+
+                    <div class="card-body">
+                        <h2 class="card-title text-center mb-3" th:text="${post.title}">Post Title Goes Here</h2>
+
+                        <div th:if="${post.imageUrl != null AND !post.imageUrl.isBlank()}"
+                             class="post-image-container">
+                            <a th:href="${post.imageUrl}" target="_blank">
+                                <img th:src="${post.imageUrl}" alt="Post Image">
+                            </a>
+                        </div>
+
+                        <p class="card-text formatted-text" th:text="${post.description}">
+                            Full post description.
+                        </p>
+
+                        <div class="post-actions">
+
+                            <a th:href="@{|/posts/${post.id}/edit|}"
+                               class="btn btn-secondary"
+                               th:text="#{post.manage.edit}"
+                               th:if="${#authentication != null AND #authentication.isAuthenticated() AND #authentication.name == post.author.email}">
+                                Edit Post
+                            </a>
+
+                            <form th:action="@{|/posts/${post.id}/delete|}" method="post" class="ms-auto"
+                                  th:if="${#authentication != null AND #authentication.isAuthenticated() AND
+                                         (#authentication.name == post.author.email OR #authorization.expression('hasRole(''ADMIN'')'))}"
+                                  th:data-confirm-message="#{post.manage.delete.confirm}"
+                                  onsubmit="return confirm(this.getAttribute('data-confirm-message'));">
+
+                                <button type="submit" class="btn btn-danger" th:text="#{post.manage.delete}">
+                                    Delete Post
+                                </button>
+                            </form>
+                        </div>
+
+                    </div>
+
+                    <div class="card-footer post-stats justify-content-center">
+                        <span class="text-muted">
+                            <strong class="rating-highlight">Rating:</strong>
+                            <span th:text="${#numbers.formatDecimal(post.avgRating, 1, 1)}">8.5</span> / 10
+                            (<span th:text="${post.ratingCount}">10</span> votes)
+                        </span>
+                    </div>
                 </div>
 
-                <div class="card-body">
-                    <h2 class="card-title text-center mb-3" th:text="${post.title}">Post Title Goes Here</h2>
+                <div class="card post-card post-card-connected mb-4" id="comments">
+                    <div class="card-body">
+                        <h5 class="card-title mb-3" th:text="|Comments (${commentPage.totalElements})|">Comments (0)</h5>
 
-                    <div th:if="${post.imageUrl != null AND !post.imageUrl.isBlank()}"
-                         class="post-image-container">
-                        <a th:href="${post.imageUrl}" target="_blank">
-                            <img th:src="${post.imageUrl}" alt="Post Image">
-                        </a>
+                        <div th:if="${!commentPage.empty}" th:replace="~{fragments/comment-list :: commentList(comments=${commentPage.content})}">
+                        </div>
+
+                        <div th:if="${commentPage.empty}" class="text-center text-muted p-3">
+                            <p class="mb-0" th:text="#{post.view.noComments}">Be the first to comment on this idea.</p>
+                        </div>
                     </div>
+                </div>
 
-                    <p class="card-text formatted-text" th:text="${post.description}">
-                        Full post description.
-                    </p>
+                <div sec:authorize="isAuthenticated()" class="card post-card mb-4">
+                    <div class="card-body">
+                        <h5 class="card-title mb-3" th:text="#{post.view.yourRating}">Your Rating</h5>
 
-                    <div class="post-actions">
+                        <div th:if="${ratingSuccess}" class="alert alert-success" th:text="${ratingSuccess}"></div>
+                        <div th:if="${ratingError}" class="alert alert-danger" th:text="${ratingError}"></div>
 
-                        <a th:href="@{|/posts/${post.id}/edit|}"
-                           class="btn btn-secondary"
-                           th:text="#{post.manage.edit}"
-                           th:if="${#authentication != null AND #authentication.isAuthenticated() AND #authentication.name == post.author.email}">
-                            Edit Post
-                        </a>
-
-                        <form th:action="@{|/posts/${post.id}/delete|}" method="post" class="ms-auto"
-                              th:if="${#authentication != null AND #authentication.isAuthenticated() AND
-                                     (#authentication.name == post.author.email OR #authorization.expression('hasRole(''ADMIN'')'))}"
-                              th:data-confirm-message="#{post.manage.delete.confirm}"
-                              onsubmit="return confirm(this.getAttribute('data-confirm-message'));">
-
-                            <button type="submit" class="btn btn-danger" th:text="#{post.manage.delete}">
-                                Delete Post
-                            </button>
+                        <form th:action="@{|/ratings/post/${post.id}|}" th:object="${newRating}" method="post" class="rating-form">
+                            <div class="d-flex justify-content-center flex-wrap">
+                                <div th:each="i : ${#numbers.sequence(0, 10)}" class="rating-button-wrapper">
+                                    <input type="radio" th:field="*{ratingValue}" th:value="${i}" th:id="|rating${i}|" class="d-none">
+                                    <label th:for="|rating${i}|" class="btn btn-rating" th:text="${i}">0</label>
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100 mt-3" id="submitRatingBtn"
+                                    th:text="#{post.view.submitRating}" disabled>Submit Rating</button>
                         </form>
                     </div>
-
                 </div>
 
-                <div class="card-footer post-stats justify-content-center">
-                    <span class="text-muted">
-                        <strong class="rating-highlight">Rating:</strong>
-                        <span th:text="${#numbers.formatDecimal(post.avgRating, 1, 1)}">8.5</span> / 10
-                        (<span th:text="${post.ratingCount}">10</span> votes)
-                    </span>
-                </div>
-            </div>
+                <div sec:authorize="isAuthenticated()" class="card post-card mb-4" id="add-comment">
+                    <div class="card-body">
+                        <h5 class="card-title mb-3" th:text="#{post.view.addComment}">Add a Comment</h5>
 
-            <div class="card post-card post-card-connected mb-4" id="comments">
-                <div class="card-body">
-                    <h5 class="card-title mb-3" th:text="|Comments (${commentPage.totalElements})|">Comments (0)</h5>
+                        <div th:if="${commentSuccess}" class="alert alert-success" th:text="${commentSuccess}"></div>
+                        <div th:if="${commentError}" class="alert alert-danger" th:text="${commentError}"></div>
 
-                    <div th:if="${!commentPage.empty}" th:replace="~{fragments/comment-list :: commentList(comments=${commentPage.content})}">
-                    </div>
+                        <form th:action="@{|/comments/post/${post.id}|}" th:object="${newComment}" method="post">
+                            <input type="hidden" th:field="*{postId}" />
 
-                    <div th:if="${commentPage.empty}" class="text-center text-muted p-3">
-                        <p class="mb-0" th:text="#{post.view.noComments}">Be the first to comment on this idea.</p>
-                    </div>
-                </div>
-            </div>
-
-            <div sec:authorize="isAuthenticated()" class="card post-card mb-4">
-                <div class="card-body">
-                    <h5 class="card-title mb-3" th:text="#{post.view.yourRating}">Your Rating</h5>
-
-                    <div th:if="${ratingSuccess}" class="alert alert-success" th:text="${ratingSuccess}"></div>
-                    <div th:if="${ratingError}" class="alert alert-danger" th:text="${ratingError}"></div>
-
-                    <form th:action="@{|/ratings/post/${post.id}|}" th:object="${newRating}" method="post" class="rating-form">
-                        <div class="d-flex justify-content-center flex-wrap">
-                            <div th:each="i : ${#numbers.sequence(0, 10)}" class="rating-button-wrapper">
-                                <input type="radio" th:field="*{ratingValue}" th:value="${i}" th:id="|rating${i}|" class="d-none">
-                                <label th:for="|rating${i}|" class="btn btn-rating" th:text="${i}">0</label>
+                            <div class="mb-3">
+                                <textarea th:field="*{content}" class="form-control" rows="3" th:placeholder="#{post.view.commentPlaceholder}"></textarea>
                             </div>
-                        </div>
-                        <button type="submit" class="btn btn-primary w-100 mt-3" id="submitRatingBtn"
-                                th:text="#{post.view.submitRating}" disabled>Submit Rating</button>
-                    </form>
+                            <button type="submit" class="btn btn-outline-orange" th:text="#{post.view.submitComment}">Post Comment</button>
+                        </form>
+                    </div>
                 </div>
+
             </div>
-
-            <div sec:authorize="isAuthenticated()" class="card post-card mb-4" id="add-comment">
-                <div class="card-body">
-                    <h5 class="card-title mb-3" th:text="#{post.view.addComment}">Add a Comment</h5>
-
-                    <div th:if="${commentSuccess}" class="alert alert-success" th:text="${commentSuccess}"></div>
-                    <div th:if="${commentError}" class="alert alert-danger" th:text="${commentError}"></div>
-
-                    <form th:action="@{|/comments/post/${post.id}|}" th:object="${newComment}" method="post">
-                        <input type="hidden" th:field="*{postId}" />
-
-                        <div class="mb-3">
-                            <textarea th:field="*{content}" class="form-control" rows="3" th:placeholder="#{post.view.commentPlaceholder}"></textarea>
-                        </div>
-                        <button type="submit" class="btn btn-outline-orange" th:text="#{post.view.submitComment}">Post Comment</button>
-                    </form>
-                </div>
-            </div>
-
         </div>
-    </div>
-
-    <script th:inline="javascript">
-        document.addEventListener("DOMContentLoaded", function() {
-          const submitButton = document.getElementById('submitRatingBtn');
-          const ratingRadios = document.querySelectorAll('.rating-form input[type="radio"]');
-          ratingRadios.forEach(function(radio) {
-            radio.addEventListener('click', function() {
-              if (submitButton) {
-                submitButton.disabled = false;
-              }
-            });
-          });
+    </div> <script th:inline="javascript">
+    document.addEventListener("DOMContentLoaded", function() {
+      const submitButton = document.getElementById('submitRatingBtn');
+      const ratingRadios = document.querySelectorAll('.rating-form input[type="radio"]');
+      ratingRadios.forEach(function(radio) {
+        radio.addEventListener('click', function() {
+          if (submitButton) {
+            submitButton.disabled = false;
+          }
         });
-    </script>
+      });
+    });
+</script>
 
 </main>
 </html>

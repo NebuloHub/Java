@@ -3,49 +3,49 @@
       th:replace="~{layout/main :: layout(pageTitle=#{user.edit.pageTitle}, content=~{::main})}">
 
 <main>
-    <div class="row justify-content-center mt-5">
-        <div class="col-lg-5 col-md-8">
-            <div class="card shadow-lg" style="background-color: var(--nh-dark-panel); border-color: var(--nh-border);">
-                <div class="card-body p-4 p-md-5">
+    <div class="container-fluid">
+        <div class="row justify-content-center mt-5">
+            <div class="col-lg-5 col-md-8">
+                <div class="card shadow-lg" style="background-color: var(--nh-dark-panel); border-color: var(--nh-border);">
+                    <div class="card-body p-4 p-md-5">
 
-                    <h2 class="card-title text-center mb-4" th:text="#{user.edit.title}">Edit Profile</h2>
+                        <h2 class="card-title text-center mb-4" th:text="#{user.edit.title}">Edit Profile</h2>
 
-                    <div th:if="${globalError}" class="alert alert-danger" role="alert" th:text="${globalError}">
-                        Error updating profile.
+                        <div th:if="${globalError}" class="alert alert-danger" role="alert" th:text="${globalError}">
+                            Error updating profile.
+                        </div>
+
+                        <form th:action="@{|/users/${userId}/edit|}" th:object="${userDto}" method="post">
+
+                            <div class="mb-3">
+                                <label for="username" class="form-label" th:text="#{register.field.username}">Username</label>
+                                <input type="text" class="form-control" id="username" th:field="*{username}" required>
+                                <div th:if="${#fields.hasErrors('username')}"
+                                     class="text-danger small mt-1" th:errors="*{username}"></div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="email" class="form-label" th:text="#{register.field.email}">Email</label>
+                                <input type="email" class="form-control" id="email" th:field="*{email}" required>
+                                <div th:if="${#fields.hasErrors('email')}"
+                                     class="text-danger small mt-1" th:errors="*{email}"></div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="password" class="form-label" th:text="#{register.field.password}">Password</label>
+                                <input type="password" class="form-control" id="password" th:field="*{password}">
+                                <small class="text-muted">Leave blank to keep your current password.</small>
+                                <div th:if="${#fields.hasErrors('password')}"
+                                     class="text-danger small mt-1" th:errors="*{password}"></div>
+                            </div>
+
+                            <div class="d-grid"> <button type="submit" class="btn btn-primary btn-lg w-100" th:text="#{user.edit.submit}">Save Changes</button>
+                            </div>
+                        </form>
+
                     </div>
-
-                    <form th:action="@{|/users/${userId}/edit|}" th:object="${userDto}" method="post">
-
-                        <div class="mb-3">
-                            <label for="username" class="form-label" th:text="#{register.field.username}">Username</label>
-                            <input type="text" class="form-control" id="username" th:field="*{username}" required>
-                            <div th:if="${#fields.hasErrors('username')}"
-                                 class="text-danger small mt-1" th:errors="*{username}"></div>
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="email" class="form-label" th:text="#{register.field.email}">Email</label>
-                            <input type="email" class="form-control" id="email" th:field="*{email}" required>
-                            <div th:if="${#fields.hasErrors('email')}"
-                                 class="text-danger small mt-1" th:errors="*{email}"></div>
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="password" class="form-label" th:text="#{register.field.password}">Password</label>
-                            <input type="password" class="form-control" id="password" th:field="*{password}">
-                            <small class="text-muted">Leave blank to keep your current password.</small>
-                            <div th:if="${#fields.hasErrors('password')}"
-                                 class="text-danger small mt-1" th:errors="*{password}"></div>
-                        </div>
-
-                        <div classV="d-grid">
-                            <button type="submit" class="btn btn-primary btn-lg w-100" th:text="#{user.edit.submit}">Save Changes</button>
-                        </div>
-                    </form>
-
                 </div>
             </div>
         </div>
-    </div>
-</main>
+    </div> </main>
 </html>

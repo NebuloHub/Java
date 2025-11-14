@@ -3,50 +3,52 @@
       th:replace="~{layout/main :: layout(pageTitle=#{register.pageTitle}, content=~{::main})}">
 
 <main>
-    <div class="row justify-content-center mt-5">
-        <div class="col-lg-5 col-md-8">
-            <div class="card shadow-lg" style="background-color: var(--nh-dark-panel); border-color: var(--nh-border);">
-                <div class="card-body p-4 p-md-5">
+    <div class="container-fluid">
+        <div class="row justify-content-center mt-5">
+            <div class="col-lg-5 col-md-8">
+                <div class="card shadow-lg" style="background-color: var(--nh-dark-panel); border-color: var(--nh-border);">
+                    <div class="card-body p-4 p-md-5">
 
-                    <h2 class="card-title text-center mb-4" th:text="#{register.title}">Create an Account</h2>
+                        <h2 class="card-title text-center mb-4" th:text="#{register.title}">Create an Account</h2>
 
-                    <div th:if="${globalError}" class="alert alert-danger" role="alert" th:text="${globalError}">
-                        Username or email is already in use.
-                    </div>
-
-                    <form th:action="@{/register}" th:object="${newUser}" method="post">
-
-                        <div class="mb-3">
-                            <label for="username" class="form-label" th:text="#{register.field.username}">Username</label>
-                            <input type="text" class="form-control" id="username" th:field="*{username}" required autofocus>
-                            <div th:if="${#fields.hasErrors('username')}"
-                                 class="text-danger small mt-1" th:errors="*{username}"></div>
+                        <div th:if="${globalError}" class="alert alert-danger" role="alert" th:text="${globalError}">
+                            Username or email is already in use.
                         </div>
 
-                        <div class="mb-3">
-                            <label for="email" class="form-label" th:text="#{register.field.email}">Email</label>
-                            <input type="email" class="form-control" id="email" th:field="*{email}" required>
-                            <div th:if="${#fields.hasErrors('email')}"
-                                 class="text-danger small mt-1" th:errors="*{email}"></div>
+                        <form th:action="@{/register}" th:object="${newUser}" method="post">
+
+                            <div class="mb-3">
+                                <label for="username" class="form-label" th:text="#{register.field.username}">Username</label>
+                                <input type="text" class="form-control" id="username" th:field="*{username}" required autofocus>
+                                <div th:if="${#fields.hasErrors('username')}"
+                                     class="text-danger small mt-1" th:errors="*{username}"></div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="email" class="form-label" th:text="#{register.field.email}">Email</label>
+                                <input type="email" class="form-control" id="email" th:field="*{email}" required>
+                                <div th:if="${#fields.hasErrors('email')}"
+                                     class="text-danger small mt-1" th:errors="*{email}"></div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="password" class="form-label" th:text="#{register.field.password}">Password</label>
+                                <input type="password" class="form-control" id="password" th:field="*{password}" required>
+                                <div th:if="${#fields.hasErrors('password')}"
+                                     class="text-danger small mt-1" th:errors="*{password}"></div>
+                            </div>
+
+                            <div class="d-grid">
+                                <button type="submit" class="btn btn-primary btn-lg" th:text="#{register.submit}">Create Account</button>
+                            </div>
+                        </form>
+
+                        <hr class="my-4" style="border-top-color: var(--nh-border);">
+
+                        <div class="text-center">
+                            <small class="text-muted" th:text="#{register.link.login}">Already have an account?</small>
+                            <a th:href="@{/login}" class="ms-1" th:text="#{header.login}">Login</a>
                         </div>
-
-                        <div class="mb-3">
-                            <label for="password" class="form-label" th:text="#{register.field.password}">Password</label>
-                            <input type="password" class="form-control" id="password" th:field="*{password}" required>
-                            <div th:if="${#fields.hasErrors('password')}"
-                                 class="text-danger small mt-1" th:errors="*{password}"></div>
-                        </div>
-
-                        <div class="d-grid">
-                            <button type="submit" class="btn btn-primary btn-lg" th:text="#{register.submit}">Create Account</button>
-                        </div>
-                    </form>
-
-                    <hr class="my-4" style="border-top-color: var(--nh-border);">
-
-                    <div class="text-center">
-                        <small class="text-muted" th:text="#{register.link.login}">Already have an account?</small>
-                        <a th:href="@{/login}" class="ms-1" th:text="#{header.login}">Login</a>
                     </div>
                 </div>
             </div>
