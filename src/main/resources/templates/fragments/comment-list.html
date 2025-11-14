@@ -1,15 +1,30 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <body>
 
 <div th:fragment="commentList(comments)" class="post-comments">
 
-    <div th:each="comment : ${comments}" class="comment-item">
-        <p class="mb-0">
-            <a th:href="@{|/users/${comment.userId}|}" class="fw-bold text-decoration-none" th:text="${comment.username}">username</a>:
+    <div th:each="comment : ${comments}" class="comment-item d-flex justify-content-between align-items-start">
 
+        <p class="mb-0 me-3">
+            <a th:href="@{|/users/${comment.userId}|}" class="fw-bold text-decoration-none" th:text="${comment.username}">username</a>:
             <span class="formatted-text" th:text="${comment.content}">This is the comment text.</span>
         </p>
+
+        <div th:if="${#authorization.expression('isAuthenticated()') AND #authentication.principal.id == comment.userId}"
+             class="comment-delete-form flex-shrink-0">
+
+            <form th:action="@{|/comments/${comment.postId}/delete/${comment.id}|}"
+                  method="post"
+                  th:data-confirm-message="#{comment.manage.delete.confirm}"
+                  onsubmit="return confirm(this.getAttribute('data-confirm-message'));">
+
+                <button type="submit" class="btn-delete-comment">
+                    &times; </button>
+            </form>
+        </div>
+
     </div>
 
 </div>

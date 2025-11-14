@@ -53,13 +53,30 @@
 
                         <div th:if="${!commentPage.empty}" class="profile-comments-card mb-4">
                             <div class="post-comments">
-                                <div th:each="comment : ${commentPage.content}" class="comment-item">
-                                    <span class="formatted-text profile-comment-content" th:text="${comment.content}">
-                                        Comment content.
-                                    </span>
-                                    <a th:href="@{|/posts/${comment.postId}|}" class="comment-on-post-title fst-italic">
-                                        (<span th:text="#{user.profile.onPost}">on post</span>: "<span th:text="${comment.postTitle}">Post Title</span>")
-                                    </a>
+                                <div th:each="comment : ${commentPage.content}" class="comment-item d-flex justify-content-between align-items-start">
+
+                                    <div class="me-3">
+                                        <span class="formatted-text profile-comment-content" th:text="${comment.content}">
+                                            Comment content.
+                                        </span>
+                                        <a th:href="@{|/posts/${comment.postId}|}" class="comment-on-post-title fst-italic">
+                                            (<span th:text="#{user.profile.onPost}">on post</span>: "<span th:text="${comment.postTitle}">Post Title</span>")
+                                        </a>
+                                    </div>
+
+                                    <div th:if="${#authorization.expression('isAuthenticated()') AND #authentication.principal.id == comment.userId}"
+                                         class="comment-delete-form flex-shrink-0">
+
+                                        <form th:action="@{|/comments/${comment.postId}/delete/${comment.id}?redirect=user&userId=${profileUser.id}|}"
+                                              method="post"
+                                              th:data-confirm-message="#{comment.manage.delete.confirm}"
+                                              onsubmit="return confirm(this.getAttribute('data-confirm-message'));">
+
+                                            <button type="submit" class="btn-delete-comment">
+                                                &times; </button>
+                                        </form>
+                                    </div>
+
                                 </div>
                             </div>
                         </div>
@@ -115,5 +132,6 @@
                             </li>
                         </ul>
                     </nav>
+
                 </div> </div> </div> </div> </div> </main>
 </html>

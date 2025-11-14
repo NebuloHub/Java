@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam; // <-- IMPORT ADDED
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
@@ -21,56 +22,57 @@ public class CommentWebController {
 
     private final CommentService commentService;
 
-    /**
-     * Handles the form submission for adding a new comment.
-     * This will be called from the "posts/view" page.
-     */
     @PostMapping("/post/{postId}")
     public String createComment(
             @PathVariable Long postId,
-            @Valid @ModelAttribute("newComment") CreateCommentDto dto, // DTO from the form
+            @Valid @ModelAttribute("newComment") CreateCommentDto dto,
             BindingResult bindingResult,
-            Authentication authentication, // Get the logged-in user
+            Authentication authentication,
             RedirectAttributes redirectAttributes
     ) {
-        // If the form has errors (e.g., empty comment), redirect with an error
+        // ... (no changes to this method) ...
         if (bindingResult.hasErrors()) {
             redirectAttributes.addFlashAttribute("commentError", "Comment cannot be empty.");
             return "redirect:/posts/" + postId;
         }
 
         try {
-            // Call the service, passing the DTO and the logged-in user
             commentService.create(dto, authentication);
             redirectAttributes.addFlashAttribute("commentSuccess", "Comment posted!");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("commentError", "Error posting comment: " + e.getMessage());
         }
 
-        // Redirect back to the post page, jumping to the comments section
         return "redirect:/posts/" + postId + "#comments";
     }
 
     /**
-     * **--- NEW METHOD ---**
+     * **--- METHOD MODIFIED ---**
      * Handles the form submission for deleting a comment.
-     * The security is handled by @PreAuthorize on the service layer.
+     * Now accepts redirect parameters to handle different redirect logic.
      */
     @PostMapping("/{postId}/delete/{commentId}")
     public String deleteComment(
             @PathVariable Long postId,
             @PathVariable Long commentId,
+            @RequestParam(value = "redirect", required = false) String redirect, // <-- PARAM ADDED
+            @RequestParam(value = "userId", required = false) Long userId,       // <-- PARAM ADDED
             RedirectAttributes redirectAttributes
     ) {
         try {
-            // Security is checked inside the service method
             commentService.delete(commentId);
             redirectAttributes.addFlashAttribute("commentSuccess", "Comment deleted.");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("commentError", "Error deleting comment: " + e.getMessage());
         }
 
-        // Redirect back to the post page, jumping to the comments section
+        // --- NEW REDIRECT LOGIC ---
+        // If the redirect param is 'user' and we have a userId, redirect to the user's page
+        if ("user".equals(redirect) && userId != null) {
+            return "redirect:/users/" + userId;
+        }
+
+        // Otherwise, do the default redirect to the post page
         return "redirect:/posts/" + postId + "#comments";
     }
 }
