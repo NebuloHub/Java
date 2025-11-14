@@ -14,9 +14,7 @@ public class CommentStatsListener {
 
     private final PostService postService;
 
-    /**
-     * Listens to the post-comment-update queue and recalculates stats.
-     */
+
     @RabbitListener(queues = RabbitMQConfig.QUEUE_POST_COMMENT_UPDATE)
     public void handleCommentUpdate(PostCommentUpdateMessage message) {
         if (message == null || message.postId() == null) {
@@ -26,7 +24,6 @@ public class CommentStatsListener {
 
         try {
             log.info("Received message to update comment stats for post ID: {}", message.postId());
-            // Call the new method in PostService
             postService.updatePostCommentStats(message.postId());
             log.info("Successfully updated comment stats for post ID: {}", message.postId());
         } catch (Exception e) {

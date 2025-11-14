@@ -30,7 +30,6 @@ public class CommentWebController {
             Authentication authentication,
             RedirectAttributes redirectAttributes
     ) {
-        // ... (no changes to this method) ...
         if (bindingResult.hasErrors()) {
             redirectAttributes.addFlashAttribute("commentError", "Comment cannot be empty.");
             return "redirect:/posts/" + postId;
@@ -46,17 +45,12 @@ public class CommentWebController {
         return "redirect:/posts/" + postId + "#comments";
     }
 
-    /**
-     * **--- METHOD MODIFIED ---**
-     * Handles the form submission for deleting a comment.
-     * Now accepts redirect parameters to handle different redirect logic.
-     */
     @PostMapping("/{postId}/delete/{commentId}")
     public String deleteComment(
             @PathVariable Long postId,
             @PathVariable Long commentId,
-            @RequestParam(value = "redirect", required = false) String redirect, // <-- PARAM ADDED
-            @RequestParam(value = "userId", required = false) Long userId,       // <-- PARAM ADDED
+            @RequestParam(value = "redirect", required = false) String redirect,
+            @RequestParam(value = "userId", required = false) Long userId,
             RedirectAttributes redirectAttributes
     ) {
         try {
@@ -66,7 +60,6 @@ public class CommentWebController {
             redirectAttributes.addFlashAttribute("commentError", "Error deleting comment: " + e.getMessage());
         }
 
-        // --- NEW REDIRECT LOGIC ---
         // If the redirect param is 'user' and we have a userId, redirect to the user's page
         if ("user".equals(redirect) && userId != null) {
             return "redirect:/users/" + userId;

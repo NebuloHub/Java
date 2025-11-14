@@ -43,7 +43,6 @@ public class AuthController {
         if (token != null) {
             Instant expiresAt = tokenService.getExpirationInstant(token);
             if (expiresAt == null) {
-                // Failsafe: if token is weird, expire it in 1 hour
                 expiresAt = Instant.now().plusSeconds(3600);
             }
             tokenBlacklistService.blacklistToken(token, expiresAt);

@@ -40,7 +40,7 @@ public class CommentController {
     @PostMapping("/comments")
     public ResponseEntity<ReadCommentDto> create(
             @RequestBody @Valid CreateCommentDto dto,
-            Authentication authentication, // <-- Spring injects the logged-in user
+            Authentication authentication,
             UriComponentsBuilder uriBuilder
     ) {
         ReadCommentDto newComment = commentService.create(dto, authentication);

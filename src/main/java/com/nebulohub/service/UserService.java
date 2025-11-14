@@ -104,7 +104,6 @@ public class UserService {
             user.setRole(dto.role());
         }
 
-        // **A CORREÇÃO:** Salvando o objeto 'user' que acabamos de modificar.
         User updatedUser = userRepository.save(user);
         return new ReadUserDto(updatedUser);
     }

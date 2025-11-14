@@ -4,8 +4,8 @@ package com.nebulohub.controller.web;
 import com.nebulohub.domain.comment.CreateCommentDto;
 import com.nebulohub.domain.comment.ReadCommentDto;
 import com.nebulohub.domain.post.CreatePostDto;
+import com.nebulohub.domain.post.ReadPostDto;
 import com.nebulohub.domain.post.UpdatePostDto;
-import com.nebulohub.domain.post.dto.ReadPostDto;
 import com.nebulohub.domain.rating.SubmitRatingDto;
 import com.nebulohub.service.CommentService;
 import com.nebulohub.service.PostService;
@@ -42,7 +42,6 @@ public class PostWebController {
 
     @GetMapping("/new")
     public String showNewPostForm(Model model) {
-        // **FIX:** Adicionado o terceiro argumento (imageUrl) como string vazia.
         model.addAttribute("newPost", new CreatePostDto("", "", ""));
         return "posts/new";
     }
@@ -98,7 +97,7 @@ public class PostWebController {
     public String showEditPostForm(@PathVariable Long id, Model model) {
         ReadPostDto post = postService.findById(id);
 
-        // **FIX:** Adicionado o terceiro argumento (post.imageUrl()) ao construtor.
+
         UpdatePostDto updateDto = new UpdatePostDto(post.title(), post.description(), post.imageUrl());
 
         model.addAttribute("postDto", updateDto);

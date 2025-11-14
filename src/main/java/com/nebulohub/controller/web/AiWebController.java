@@ -1,6 +1,6 @@
 package com.nebulohub.controller.web;
 
-import com.nebulohub.domain.post.dto.ReadPostDto;
+import com.nebulohub.domain.post.ReadPostDto;
 import com.nebulohub.service.AiService;
 import com.nebulohub.service.PostService;
 import lombok.RequiredArgsConstructor;
@@ -21,16 +21,13 @@ public class AiWebController {
     private final AiService aiService;
     private final PostService postService;
 
-    /**
-     * Lida com a solicitação para gerar uma análise de IA para um post.
-     * **MODIFICADO:** Agora injeta o 'Locale' do usuário.
-     */
+
     @PostMapping("/critique/post/{postId}")
     @PreAuthorize("isAuthenticated()")
     public String getAiCritique(
             @PathVariable Long postId,
             RedirectAttributes redirectAttributes,
-            Locale locale // <-- PARÂMETRO ADICIONADO (Spring injeta automaticamente)
+            Locale locale
     ) {
         try {
             // 1. Busca o conteúdo do post

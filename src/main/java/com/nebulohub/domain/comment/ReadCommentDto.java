@@ -7,7 +7,6 @@ import java.time.LocalDateTime;
 /**
  * DTO for sending comment data back to the client.
  * Includes simplified author info.
- * **FIXED:** Now includes postTitle
  */
 public record ReadCommentDto(
         Long id,
@@ -16,11 +15,9 @@ public record ReadCommentDto(
         Long userId,
         String username,
         Long postId,
-        String postTitle // <-- CAMPO ADICIONADO
+        String postTitle
 ) {
-    /**
-     * Convenience constructor to map a Comment entity to this DTO.
-     */
+
     public ReadCommentDto(Comment comment) {
         this(
                 comment.getId(),
@@ -29,7 +26,6 @@ public record ReadCommentDto(
                 comment.getUser() != null ? comment.getUser().getId() : null,
                 comment.getUser() != null ? comment.getUser().getActualUsername() : null,
                 comment.getPost() != null ? comment.getPost().getId() : null,
-                // **FIX:** Adicionada a lógica para obter o título do post
                 comment.getPost() != null ? comment.getPost().getTitle() : null
         );
     }

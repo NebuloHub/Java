@@ -17,7 +17,6 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     Page<Post> findAllWithUserOrderByCreatedAtDesc(Pageable pageable);
 
     /**
-     * **NEW QUERY**
      * Finds all posts by a specific user, joining the User entity.
      * Ordered by creation date, newest first.
      */

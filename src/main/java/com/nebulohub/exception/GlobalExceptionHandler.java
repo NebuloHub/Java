@@ -115,7 +115,7 @@ public class GlobalExceptionHandler {
         return buildJson(HttpStatus.BAD_REQUEST, "Invalid argument", ex.getMessage(), path);
     }
 
-    // ========== BusinessException ========== (Added this handler)
+    // ========== BusinessException ==========
     @ExceptionHandler(BusinessException.class)
     public Object handleBusinessException(BusinessException ex, HttpServletRequest request) {
         String path = request.getRequestURI();
@@ -127,7 +127,7 @@ public class GlobalExceptionHandler {
             mav.addObject("path", path);
             return mav;
         }
-        // Using 400 Bad Request for business logic failures (like self-rating)
+
         return buildJson(HttpStatus.BAD_REQUEST, "Business Rule Violation", ex.getMessage(), path);
     }
 

@@ -14,7 +14,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication; // <-- IMPORT ADDED
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -35,13 +35,12 @@ public class PostController {
             @ApiResponse(responseCode = "401", description = "User must be authenticated")
     })
     @PostMapping
-    public ResponseEntity<com.nebulohub.domain.post.dto.ReadPostDto> create(
+    public ResponseEntity<com.nebulohub.domain.post.ReadPostDto> create(
             @RequestBody @Valid CreatePostDto dto,
             Authentication authentication,
             UriComponentsBuilder uriBuilder
     ) {
-        // Pass the authenticated user to the service
-        com.nebulohub.domain.post.dto.ReadPostDto newPost = postService.create(dto, authentication);
+        com.nebulohub.domain.post.ReadPostDto newPost = postService.create(dto, authentication);
         URI uri = uriBuilder.path("/api/posts/{id}").buildAndExpand(newPost.id()).toUri();
         return ResponseEntity.created(uri).body(newPost);
     }
@@ -49,11 +48,11 @@ public class PostController {
     @Operation(summary = "List all posts (paginated, newest first)")
     @ApiResponse(responseCode = "200", description = "Page of posts returned")
     @GetMapping
-    public ResponseEntity<Page<com.nebulohub.domain.post.dto.ReadPostDto>> listAll(
+    public ResponseEntity<Page<com.nebulohub.domain.post.ReadPostDto>> listAll(
             @ParameterObject
             @PageableDefault(size = 10) Pageable pageable
     ) {
-        Page<com.nebulohub.domain.post.dto.ReadPostDto> posts = postService.findAll(pageable);
+        Page<com.nebulohub.domain.post.ReadPostDto> posts = postService.findAll(pageable);
         return ResponseEntity.ok(posts);
     }
 
@@ -63,8 +62,8 @@ public class PostController {
             @ApiResponse(responseCode = "404", description = "Post not found")
     })
     @GetMapping("/{id}")
-    public ResponseEntity<com.nebulohub.domain.post.dto.ReadPostDto> getById(@PathVariable Long id) {
-        com.nebulohub.domain.post.dto.ReadPostDto post = postService.findById(id);
+    public ResponseEntity<com.nebulohub.domain.post.ReadPostDto> getById(@PathVariable Long id) {
+        com.nebulohub.domain.post.ReadPostDto post = postService.findById(id);
         return ResponseEntity.ok(post);
     }
 
@@ -75,11 +74,11 @@ public class PostController {
             @ApiResponse(responseCode = "404", description = "Post not found")
     })
     @PutMapping("/{id}")
-    public ResponseEntity<com.nebulohub.domain.post.dto.ReadPostDto> update(
+    public ResponseEntity<com.nebulohub.domain.post.ReadPostDto> update(
             @PathVariable Long id,
             @RequestBody @Valid UpdatePostDto dto
     ) {
-        com.nebulohub.domain.post.dto.ReadPostDto updatedPost = postService.update(id, dto);
+        com.nebulohub.domain.post.ReadPostDto updatedPost = postService.update(id, dto);
         return ResponseEntity.ok(updatedPost);
     }
 

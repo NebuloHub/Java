@@ -1,7 +1,7 @@
 package com.nebulohub.controller.web;
 
 import com.nebulohub.domain.comment.ReadCommentDto;
-import com.nebulohub.domain.post.dto.ReadPostDto;
+import com.nebulohub.domain.post.ReadPostDto;
 import com.nebulohub.domain.user.ReadUserDto;
 import com.nebulohub.domain.user.UpdateUserDto;
 import com.nebulohub.exception.DuplicateEntryException;
@@ -46,7 +46,7 @@ public class UserWebController {
         Pageable commentsPageable = PageRequest.of(0, 10, Sort.by("createdAt").descending());
         Page<ReadCommentDto> commentPage = commentService.getCommentsFromUser(id, commentsPageable);
 
-        // **FIX:** Renomeado "user" para "profileUser" para evitar conflito com SpEL
+
         model.addAttribute("profileUser", user);
         model.addAttribute("postPage", postPage);
         model.addAttribute("commentPage", commentPage);
@@ -55,9 +55,7 @@ public class UserWebController {
         return "users/view";
     }
 
-    /**
-     * Exibe o formulário de edição de perfil.
-     */
+
     @GetMapping("/{id}/edit")
     @PreAuthorize("#id == principal.id")
     public String showEditForm(@PathVariable Long id, Model model) {

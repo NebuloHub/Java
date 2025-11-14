@@ -58,12 +58,6 @@ public class User implements UserDetails {
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
-    // --- Relationships ---
-
-    /**
-     * **NEWLY ADDED RELATIONSHIP**
-     * If a User is deleted, all their Posts are also deleted.
-     */
     @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE, orphanRemoval = true)
     private List<Post> posts;
 
@@ -73,8 +67,6 @@ public class User implements UserDetails {
      @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE, orphanRemoval = true)
      private List<Comment> comments;
 
-
-    // --- Spring Security UserDetails Implementation ---
 
     @Override
     public String getUsername() {

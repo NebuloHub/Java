@@ -26,7 +26,7 @@ public class CommentService {
     private final CommentRepository commentRepository;
     private final UserRepository userRepository;
     private final PostRepository postRepository;
-    private final RabbitTemplate rabbitTemplate; // <-- INJECT ADDED
+    private final RabbitTemplate rabbitTemplate;
 
     @Transactional
     @CacheEvict(cacheNames = {"posts", "userPosts", "userRecentComments"}, allEntries = true)
@@ -43,7 +43,6 @@ public class CommentService {
 
         Comment savedComment = commentRepository.save(newComment);
 
-        // --- PUBLISH MESSAGE ---
         publishCommentUpdate(dto.postId());
 
         return new ReadCommentDto(savedComment);
@@ -58,7 +57,7 @@ public class CommentService {
 
         comment.setContent(dto.content());
         Comment updatedComment = commentRepository.save(comment);
-        // Note: No need to publish on *update*, as the count doesn't change
+
         return new ReadCommentDto(updatedComment);
     }
 
@@ -69,15 +68,15 @@ public class CommentService {
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new NotFoundException("Comment not found with id: " + commentId));
 
-        Long postId = comment.getPost().getId(); // Get postId BEFORE deleting
+        Long postId = comment.getPost().getId();
 
         commentRepository.deleteById(commentId);
 
-        // --- PUBLISH MESSAGE ---
+
         publishCommentUpdate(postId);
     }
 
-    // --- NEW HELPER METHOD ---
+
     private void publishCommentUpdate(Long postId) {
         PostCommentUpdateMessage message = new PostCommentUpdateMessage(postId);
         rabbitTemplate.convertAndSend(
@@ -86,11 +85,10 @@ public class CommentService {
                 message
         );
     }
-    // --- END ---
 
 
     public Page<ReadCommentDto> getCommentsForPost(Long postId, Pageable pageable) {
-        // ... no change here ...
+
         if (!postRepository.existsById(postId)) {
             throw new NotFoundException("Post not found with id: " + postId);
         }
@@ -99,7 +97,6 @@ public class CommentService {
 
     @Cacheable(cacheNames = "userRecentComments", key = "#userId")
     public Page<ReadCommentDto> getCommentsFromUser(Long userId, Pageable pageable) {
-        // ... no change here ...
         if (!userRepository.existsById(userId)) {
             throw new NotFoundException("User not found with id: " + userId);
         }

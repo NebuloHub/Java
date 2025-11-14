@@ -1,6 +1,6 @@
 package com.nebulohub.service;
 
-// --- Imports ---
+
 import com.nebulohub.config.RabbitMQConfig; // <-- IMPORT ADDED
 import com.nebulohub.domain.post.Post;
 import com.nebulohub.domain.post.PostRepository;
@@ -32,17 +32,14 @@ public class RatingService {
     private final RatingRepository ratingRepository;
     private final UserRepository userRepository;
     private final PostRepository postRepository;
-    // private final PostService postService; // We no longer call this directly
 
-    // --- NEWLY INJECTED ---
+
+
     private final RabbitTemplate rabbitTemplate;
-    private final RabbitMQConfig rabbitMQConfig; // Not strictly needed, but good for constants
-    private final PostService postService; // <-- RE-ADD or KEEP this. Listener needs it. My mistake. It's the *call* we're removing.
+    private final RabbitMQConfig rabbitMQConfig;
+    private final PostService postService;
 
-    /**
-     * **EVICT CACHE (ATUALIZADO)**
-     * Limpa os caches "posts" e "userPosts".
-     */
+
     @Transactional
     @CacheEvict(cacheNames = {"posts", "userPosts"}, allEntries = true)
     public ReadRatingDto createOrUpdate(SubmitRatingDto dto, Authentication authentication) {
@@ -70,19 +67,13 @@ public class RatingService {
 
         Rating savedRating = ratingRepository.save(ratingToSave);
 
-        // --- OLD SYNCHRONOUS CALL (REMOVED) ---
-        // postService.updatePostRatingStats(dto.postId());
 
-        // --- NEW ASYNCHRONOUS CALL (ADDED) ---
         publishRatingUpdate(dto.postId());
 
         return new ReadRatingDto(savedRating);
     }
 
-    /**
-     * **EVICT CACHE (ATUALIZADO)**
-     * Limpa os caches "posts" e "userPosts".
-     */
+
     @Transactional
     @PreAuthorize("hasRole('ADMIN') or @ratingRepository.findById(#ratingId).get().getUser().getId() == principal.id")
     @CacheEvict(cacheNames = {"posts", "userPosts"}, allEntries = true)
@@ -93,17 +84,10 @@ public class RatingService {
         Long postId = rating.getPost().getId();
         ratingRepository.delete(rating);
 
-        // --- OLD SYNCHRONOUS CALL (REMOVED) ---
-        // postService.updatePostRatingStats(postId);
-
-        // --- NEW ASYNCHRONOUS CALL (ADDED) ---
         publishRatingUpdate(postId);
     }
 
-    /**
-     * **NEW PRIVATE HELPER METHOD**
-     * Publishes a message to RabbitMQ to update the stats for a post.
-     */
+
     private void publishRatingUpdate(Long postId) {
         PostRatingUpdateMessage message = new PostRatingUpdateMessage(postId);
         rabbitTemplate.convertAndSend(
@@ -114,7 +98,7 @@ public class RatingService {
     }
 
 
-    // --- NO CHANGES to the methods below ---
+
 
     public Page<ReadRatingDto> getRatingsForPost(Long postId, Pageable pageable) {
         if (!postRepository.existsById(postId)) {

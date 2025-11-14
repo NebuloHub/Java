@@ -42,7 +42,7 @@ public class SecurityFilter extends OncePerRequestFilter {
             // Validate token
             var email = tokenService.validateToken(token);
             if (email != null) {
-                // Valid Token, load user and set authentication context
+                // Valid Token, load user
                 UserDetails user = userRepository.findByEmail(email)
                         .orElseThrow(() -> new ServletException("User not found for token subject."));
                 

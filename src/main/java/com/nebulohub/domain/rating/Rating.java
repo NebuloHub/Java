@@ -11,13 +11,10 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-/**
- * Represents a single rating given by a user to a post.
- * Enforces the unique constraint that a user can only rate a post once.
- */
+
 @Entity
 @Table(name = "ratings",
-    // This enforces the "rate once" rule at the database level.
+
     uniqueConstraints = @UniqueConstraint(
             name = "uq_user_post_rating",
             columnNames = {"id_user", "id_post"}

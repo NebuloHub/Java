@@ -1,4 +1,4 @@
-// File: src/main/java/com/nebulohub/infra/security/SecurityConfig.java (UPDATED)
+
 package com.nebulohub.infra.security;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -34,7 +34,7 @@ public class SecurityConfig {
     @Bean
     @Order(1)
     public SecurityFilterChain apiSecurityFilterChain(HttpSecurity http) throws Exception {
-        // ... (Nenhuma mudança aqui)
+
         return http
                 .securityMatcher("/api/**", "/swagger-ui/**", "/v3/api-docs/**")
                 .csrf(AbstractHttpConfigurer::disable)
@@ -83,8 +83,7 @@ public class SecurityConfig {
                                 "/",
                                 "/login",
                                 "/register",
-                                "/posts", // A lista de posts
-                                // "/posts/**" foi movido para regras mais específicas
+                                "/posts",
                                 "/css/**",
                                 "/images/**",
                                 "/error/**",
@@ -95,9 +94,9 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/posts/{id}").permitAll()
                         .requestMatchers(HttpMethod.GET, "/users/{id}").permitAll()
 
-                        // 3. Protege todas as *outras* rotas
-                        .requestMatchers("/posts/**").authenticated() // Protege /posts/new, /posts/{id}/edit, etc.
-                        .requestMatchers("/users/**").authenticated() // Protege /users/{id}/edit, etc.
+                        // 3. Protege todas as outras rotas
+                        .requestMatchers("/posts/**").authenticated()
+                        .requestMatchers("/users/**").authenticated()
 
                         // 4. Protege todo o resto
                         .anyRequest().authenticated()

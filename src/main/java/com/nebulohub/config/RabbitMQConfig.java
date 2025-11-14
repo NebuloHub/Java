@@ -16,11 +16,11 @@ public class RabbitMQConfig {
 
     public static final String EXCHANGE_NAME = "ex.nebulohub.direct";
 
-    // --- RATING (Existing) ---
+    // --- RATING
     public static final String QUEUE_POST_RATING_UPDATE = "q.post-rating-update";
     public static final String ROUTING_KEY_POST_RATING_UPDATE = "post-rating-update";
 
-    // --- COMMENT (New) ---
+    // --- COMMENT
     public static final String QUEUE_POST_COMMENT_UPDATE = "q.post-comment-update";
     public static final String ROUTING_KEY_POST_COMMENT_UPDATE = "post-comment-update";
 
@@ -30,7 +30,7 @@ public class RabbitMQConfig {
         return new DirectExchange(EXCHANGE_NAME);
     }
 
-    // --- Rating Queue (Existing) ---
+    // --- Rating Queue
     @Bean
     public Queue postRatingUpdateQueue() {
         return new Queue(QUEUE_POST_RATING_UPDATE);
@@ -43,7 +43,7 @@ public class RabbitMQConfig {
                 .with(ROUTING_KEY_POST_RATING_UPDATE);
     }
 
-    // --- Comment Queue (New) ---
+    // --- Comment Queue
     @Bean
     public Queue postCommentUpdateQueue() {
         return new Queue(QUEUE_POST_COMMENT_UPDATE);
@@ -56,7 +56,7 @@ public class RabbitMQConfig {
                 .with(ROUTING_KEY_POST_COMMENT_UPDATE);
     }
 
-    // --- Shared Beans (Existing) ---
+    // --- Shared Beans
     @Bean
     public MessageConverter jsonMessageConverter() {
         return new Jackson2JsonMessageConverter();

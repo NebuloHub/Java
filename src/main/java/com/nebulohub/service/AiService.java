@@ -24,7 +24,6 @@ public class AiService {
 
     /**
      * Gera uma análise de "Prós e Contras" para uma ideia de startup.
-     * **MODIFICADO:** Agora aceita um 'language' ("en" ou "pt").
      *
      * @param postDescription A descrição da ideia.
      * @param language O código do idioma (ex: "pt" ou "en").

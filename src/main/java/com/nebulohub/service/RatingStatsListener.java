@@ -27,12 +27,9 @@ public class RatingStatsListener {
 
         try {
             log.info("Received message to update stats for post ID: {}", message.postId());
-            // This is the work we wanted to make asynchronous
             postService.updatePostRatingStats(message.postId());
             log.info("Successfully updated stats for post ID: {}", message.postId());
         } catch (Exception e) {
-            // Log the error, but don't re-throw.
-            // This prevents the message from being re-queued indefinitely (a "poison pill").
             log.error("Failed to update post stats for post ID: {}. Error: {}",
                     message.postId(), e.getMessage(), e);
         }

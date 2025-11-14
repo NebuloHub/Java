@@ -13,11 +13,6 @@ public record UpdateUserDto(
         @Size(max = 255, message = "{user.validation.email.size}")
         String email,
 
-        /**
-         * **FIX:**
-         * Esta validação agora permite uma string vazia (length 0) OU
-         * uma string com 6 ou mais caracteres.
-         */
         @Pattern(regexp = "^($|.{6,})$", message = "{user.validation.password.size}")
         String password,
 

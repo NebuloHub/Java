@@ -39,10 +39,6 @@ public class Post {
     @Column(name = "description")
     private String description;
 
-    /**
-     * **NOVO CAMPO**
-     * Armazena a URL para a imagem do post (opcional).
-     */
     @Column(name = "image_url", length = 2000)
     private String imageUrl;
 
@@ -62,7 +58,6 @@ public class Post {
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
-    // --- Relationships ---
 
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY)

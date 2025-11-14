@@ -1,4 +1,4 @@
-package com.nebulohub.domain.post.dto;
+package com.nebulohub.domain.post;
 
 import com.nebulohub.domain.comment.ReadCommentDto;
 import com.nebulohub.domain.post.Post;
@@ -7,10 +7,7 @@ import com.nebulohub.domain.user.ReadUserDto;
 import java.time.LocalDateTime;
 import java.util.List;
 
-/**
- * DTO para enviar dados do post de volta ao cliente.
- * **ATUALIZADO** para incluir imageUrl E commentCount.
- */
+
 public record ReadPostDto(
         Long id,
         String title,
@@ -18,14 +15,12 @@ public record ReadPostDto(
         String imageUrl,
         Double avgRating,
         Integer ratingCount,
-        Integer commentCount, // <-- CHANGED from long
+        Integer commentCount,
         LocalDateTime createdAt,
         ReadUserDto author,
-        List<ReadCommentDto> recentComments // <-- REMOVED commentCount from here
+        List<ReadCommentDto> recentComments
 ) {
-    /**
-     * Construtor de conveniência (usado por findById).
-     */
+
     public ReadPostDto(Post post) {
         this(
                 post.getId(),
@@ -34,17 +29,14 @@ public record ReadPostDto(
                 post.getImageUrl(),
                 post.getAvgRating(),
                 post.getRatingCount(),
-                post.getCommentCount(), // <-- ADDED THIS
+                post.getCommentCount(),
                 post.getCreatedAt(),
                 (post.getUser() != null) ? new ReadUserDto(post.getUser()) : null,
                 List.of()
         );
     }
 
-    /**
-     * Construtor completo (usado por findAll).
-     */
-    // CHANGED: Removed 'long commentCount' from parameters
+
     public ReadPostDto(Post post, List<ReadCommentDto> recentComments) {
         this(
                 post.getId(),
@@ -53,7 +45,7 @@ public record ReadPostDto(
                 post.getImageUrl(),
                 post.getAvgRating(),
                 post.getRatingCount(),
-                post.getCommentCount(), // <-- ADDED THIS
+                post.getCommentCount(),
                 post.getCreatedAt(),
                 (post.getUser() != null) ? new ReadUserDto(post.getUser()) : null,
                 recentComments

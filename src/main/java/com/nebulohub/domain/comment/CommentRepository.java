@@ -13,7 +13,6 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
 
     /**
      * Finds all comments for a specific post, fetching the user data eagerly.
-     * **FIX:** Ordered by creation date (newest first) as requested.
      */
     @Query("SELECT c FROM Comment c JOIN FETCH c.user u WHERE c.post.id = :postId ORDER BY c.createdAt DESC")
     Page<Comment> findAllByPostIdWithUser(Long postId, Pageable pageable);
@@ -25,17 +24,13 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
     @Query("SELECT c FROM Comment c JOIN FETCH c.post p WHERE c.user.id = :userId ORDER BY c.createdAt DESC")
     Page<Comment> findAllByUserIdWithPost(Long userId, Pageable pageable);
 
-    // --- NEWLY ADDED METHODS ---
 
     /**
-     * **NEW**
      * Finds the top 3 most recent comments for a single post.
-     * This is used for the post feed preview.
      */
     List<Comment> findTop3ByPostIdOrderByCreatedAtDesc(Long postId);
 
     /**
-     * **NEW**
      * Gets the total number of comments for a post.
      */
     long countByPostId(Long postId);

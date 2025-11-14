@@ -2,12 +2,8 @@ package com.nebulohub.service;
 
 import com.nebulohub.domain.comment.CommentRepository;
 import com.nebulohub.domain.comment.ReadCommentDto;
-import com.nebulohub.domain.post.CreatePostDto;
-import com.nebulohub.domain.post.Post;
-import com.nebulohub.domain.post.PostRepository;
+import com.nebulohub.domain.post.*;
 
-import com.nebulohub.domain.post.UpdatePostDto;
-import com.nebulohub.domain.post.dto.ReadPostDto;
 import com.nebulohub.domain.rating.Rating;
 import com.nebulohub.domain.rating.RatingRepository;
 import com.nebulohub.domain.user.User;
@@ -46,17 +42,12 @@ public class PostService {
                     .map(ReadCommentDto::new)
                     .collect(Collectors.toList());
 
-//            long commentCount = commentRepository.countByPostId(post.getId());
+
 
             return new ReadPostDto(post, recentComments);
         });
     }
 
-    /**
-     * **NOVO CACHE APLICADO AQUI**
-     * Armazena os resultados da página de perfil de usuário.
-     * A chave é uma combinação do ID do usuário e da página.
-     */
     @Cacheable(cacheNames = "userPosts", key = "{#userId, #pageable.pageNumber, #pageable.pageSize}")
     public Page<ReadPostDto> findAllByUserId(Long userId, Pageable pageable) {
         if (!userRepository.existsById(userId)) {
@@ -70,7 +61,7 @@ public class PostService {
                     .stream()
                     .map(ReadCommentDto::new)
                     .collect(Collectors.toList());
-//            long commentCount = commentRepository.countByPostId(post.getId());
+
 
             return new ReadPostDto(post, recentComments);
         });
@@ -82,10 +73,7 @@ public class PostService {
                 .orElseThrow(() -> new NotFoundException("Post not found with id: " + id));
     }
 
-    /**
-     * **EVICT CACHE (ATUALIZADO)**
-     * Limpa AMBOS os caches, "posts" e "userPosts".
-     */
+
     @Transactional
     @CacheEvict(cacheNames = {"posts", "userPosts"}, allEntries = true)
     public ReadPostDto create(CreatePostDto dto, Authentication authentication) {
@@ -101,10 +89,7 @@ public class PostService {
         return new ReadPostDto(savedPost);
     }
 
-    /**
-     * **EVICT CACHE (ATUALIZADO)**
-     * Limpa AMBOS os caches.
-     */
+
     @Transactional
     @PreAuthorize("@postRepository.findById(#id).get().getUser().getId() == principal.id")
     @CacheEvict(cacheNames = {"posts", "userPosts"}, allEntries = true)
@@ -126,10 +111,7 @@ public class PostService {
         return new ReadPostDto(updatedPost);
     }
 
-    /**
-     * **EVICT CACHE (ATUALIZADO)**
-     * Limpa AMBOS os caches.
-     */
+
     @Transactional
     @PreAuthorize("hasRole('ADMIN') or @postRepository.findById(#id).get().getUser().getId() == principal.id")
     @CacheEvict(cacheNames = {"posts", "userPosts"}, allEntries = true)
@@ -164,7 +146,6 @@ public class PostService {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new NotFoundException("Post not found with id: " + postId));
 
-        // This is the query we are removing from the feed
         long commentCount = commentRepository.countByPostId(postId);
 
         post.setCommentCount((int) commentCount);
