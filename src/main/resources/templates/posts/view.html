@@ -38,6 +38,16 @@
                                 Edit Post
                             </a>
 
+                            <form th:action="@{|/ai/critique/post/${post.id}|}" method="post" class="ms-1"
+                                  sec:authorize="isAuthenticated()" id="ai-critique-form">
+
+                                <button type="submit" class="btn btn-outline-orange"
+                                        th:text="#{post.view.analyzeAI}"
+                                        th:attr="data-loading-text=#{post.view.analyzeAILoading}">
+                                    Analyze with AI
+                                </button>
+                            </form>
+
                             <form th:action="@{|/posts/${post.id}/delete|}" method="post" class="ms-auto"
                                   th:if="${#authentication != null AND #authentication.isAuthenticated() AND
                                          (#authentication.name == post.author.email OR #authorization.expression('hasRole(''ADMIN'')'))}"
@@ -61,6 +71,23 @@
                     </div>
                 </div>
 
+                <div id="ai-analysis" class="card post-card post-card-connected mb-4"
+                     th:if="${!#strings.isEmpty(aiCritique) OR !#strings.isEmpty(aiError)}">
+
+                    <div class="card-body">
+                        <h5 class="card-title mb-3" th:text="#{post.view.analysisTitle}">AI Analysis</h5>
+
+                        <div th:if="${aiCritique}" class="alert alert-success">
+                            <p class="formatted-text mb-0" th:text="${aiCritique}"></p>
+                        </div>
+
+                        <div th:if="${aiError}" class="alert alert-danger" th:text="${aiError}">
+                            Error contacting AI.
+                        </div>
+                    </div>
+                </div>
+
+
                 <div class="card post-card post-card-connected mb-4" id="comments">
                     <div class="card-body">
                         <h5 class="card-title mb-3" th:text="|Comments (${commentPage.totalElements})|">Comments (0)</h5>
@@ -73,7 +100,6 @@
                         </div>
                     </div>
                 </div>
-
                 <div sec:authorize="isAuthenticated()" class="card post-card mb-4">
                     <div class="card-body">
                         <h5 class="card-title mb-3" th:text="#{post.view.yourRating}">Your Rating</h5>
@@ -93,7 +119,6 @@
                         </form>
                     </div>
                 </div>
-
                 <div sec:authorize="isAuthenticated()" class="card post-card mb-4" id="add-comment">
                     <div class="card-body">
                         <h5 class="card-title mb-3" th:text="#{post.view.addComment}">Add a Comment</h5>
@@ -111,22 +136,47 @@
                         </form>
                     </div>
                 </div>
-
             </div>
         </div>
-    </div> <script th:inline="javascript">
-    document.addEventListener("DOMContentLoaded", function() {
-      const submitButton = document.getElementById('submitRatingBtn');
-      const ratingRadios = document.querySelectorAll('.rating-form input[type="radio"]');
-      ratingRadios.forEach(function(radio) {
-        radio.addEventListener('click', function() {
-          if (submitButton) {
-            submitButton.disabled = false;
+    </div>
+
+    <script th:inline="javascript">
+        document.addEventListener("DOMContentLoaded", function() {
+
+          // --- Seu script de Rating (original) ---
+          const submitButton = document.getElementById('submitRatingBtn');
+          const ratingRadios = document.querySelectorAll('.rating-form input[type="radio"]');
+          ratingRadios.forEach(function(radio) {
+            radio.addEventListener('click', function() {
+              if (submitButton) {
+                submitButton.disabled = false;
+              }
+            });
+          });
+
+          // --- Nosso script (Para o loading da IA) ---
+          const aiForm = document.getElementById('ai-critique-form');
+          if (aiForm) {
+            aiForm.addEventListener('submit', function() {
+              // Encontra o botão dentro deste formulário
+              const aiButton = aiForm.querySelector('button[type="submit"]');
+              if (aiButton) {
+                aiButton.disabled = true;
+
+                // Pega o texto "Analisando..." do atributo data
+                const loadingText = aiButton.getAttribute('data-loading-text');
+
+                // Adiciona um spinner do Bootstrap e o texto de loading
+                aiButton.innerHTML = `
+                  <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                  ${loadingText}
+                `;
+              }
+            });
           }
+
         });
-      });
-    });
-</script>
+    </script>
 
 </main>
 </html>
