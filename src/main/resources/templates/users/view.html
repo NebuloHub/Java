@@ -58,7 +58,7 @@
                                     Comment content.
                                 </span>
                                 <a th:href="@{|/posts/${comment.postId}|}" class="comment-on-post-title fst-italic">
-                                    (on post: "<span th:text="${comment.postTitle}">Post Title</span>")
+                                    (<span th:text="#{user.profile.onPost}">on post</span>: "<span th:text="${comment.postTitle}">Post Title</span>")
                                 </a>
                             </div>
                         </div>
@@ -91,9 +91,9 @@
                         </div>
                         <div class="card-footer post-stats">
                                 <span class="text-muted">
-                                    <strong class="rating-highlight">Rating:</strong>
+                                    <strong class="rating-highlight" th:text="#{user.profile.rating}">Rating</strong>:
                                     <span th:text="${#numbers.formatDecimal(post.avgRating, 1, 1)}">8.5</span> / 10
-                                    (<span th:text="${post.ratingCount}">10</span> votes)
+                                    (<span th:text="${post.ratingCount}">10</span> <span th:text="#{user.profile.votes}">votes</span>)
                                 </span>
                             <small class="text-muted" th:text="${#temporals.format(post.createdAt, 'dd MMM yyyy')}">
                                 10 Jan 2025
