@@ -93,7 +93,7 @@ public class PostWebController {
     }
 
     @GetMapping("/{id}/edit")
-    @PreAuthorize("@postRepository.findById(#id).get().getUser().getId() == principal.id")
+    @PreAuthorize("hasRole('ADMIN') or @postRepository.findById(#id).get().getUser().getId() == principal.id")
     public String showEditPostForm(@PathVariable Long id, Model model) {
         ReadPostDto post = postService.findById(id);
 
@@ -106,7 +106,7 @@ public class PostWebController {
     }
 
     @PostMapping("/{id}/edit")
-    @PreAuthorize("@postRepository.findById(#id).get().getUser().getId() == principal.id")
+    @PreAuthorize("hasRole('ADMIN') or @postRepository.findById(#id).get().getUser().getId() == principal.id")
     public String handleEditPostForm(
             @PathVariable Long id,
             @Valid @ModelAttribute("postDto") UpdatePostDto dto,

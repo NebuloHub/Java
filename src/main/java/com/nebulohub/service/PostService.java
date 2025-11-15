@@ -91,7 +91,7 @@ public class PostService {
 
 
     @Transactional
-    @PreAuthorize("@postRepository.findById(#id).get().getUser().getId() == principal.id")
+    @PreAuthorize("hasRole('ADMIN') or @postRepository.findById(#id).get().getUser().getId() == principal.id")
     @CacheEvict(cacheNames = {"posts", "userPosts"}, allEntries = true)
     public ReadPostDto update(Long id, UpdatePostDto dto) {
         Post post = postRepository.findById(id)

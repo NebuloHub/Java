@@ -8,6 +8,7 @@
             <div class="col-lg-7 col-md-9 mt-5"> <div th:if="${postSuccessKey}" class="alert alert-success" th:text="#{${postSuccessKey}}"></div>
 
                 <div class="card post-card post-card-top">
+
                     <div class="card-header post-header">
                         <div>
                             <a th:href="@{|/users/${post.author.id}|}" class="fw-bold text-decoration-none" th:text="${post.author.username}">authorUsername</a>
@@ -34,13 +35,13 @@
                             <a th:href="@{|/posts/${post.id}/edit|}"
                                class="btn btn-secondary"
                                th:text="#{post.manage.edit}"
-                               th:if="${#authentication != null AND #authentication.isAuthenticated() AND #authentication.name == post.author.email}">
+                               th:if="${#authentication != null AND #authentication.isAuthenticated() AND
+                                      (#authentication.name == post.author.email OR #authorization.expression('hasRole(''ADMIN'')'))}">
                                 Edit Post
                             </a>
 
                             <form th:action="@{|/ai/critique/post/${post.id}|}" method="post" class="ms-1"
                                   sec:authorize="isAuthenticated()" id="ai-critique-form">
-
                                 <button type="submit" class="btn btn-outline-orange"
                                         th:text="#{post.view.analyzeAI}"
                                         th:attr="data-loading-text=#{post.view.analyzeAILoading}">
@@ -53,7 +54,6 @@
                                          (#authentication.name == post.author.email OR #authorization.expression('hasRole(''ADMIN'')'))}"
                                   th:data-confirm-message="#{post.manage.delete.confirm}"
                                   onsubmit="return confirm(this.getAttribute('data-confirm-message'));">
-
                                 <button type="submit" class="btn btn-danger" th:text="#{post.manage.delete}">
                                     Delete Post
                                 </button>

@@ -13,6 +13,10 @@ NebuloHub é uma plataforma web que funciona como um "feed social" focado em emp
 
 Os usuários podem se cadastrar, postar suas ideias, comentar, e avaliar as ideias de outros usuários com notas de 0 a 10. O projeto também integra o Google Gemini para fornecer uma análise automatizada (Prós e Contras) de cada ideia, atuando como um "Analista de IA".
 
+## Usuários de Teste:
+- Usuário Comum --> email: teste@gmail.com | senha: teste
+- ADMIN --> email: admin@gmail.com | senha: admin
+
 ## ☁️ Deploy no Heroku
 
 ### O projeto está deployado no Heroku:
