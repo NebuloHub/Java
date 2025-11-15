@@ -59,7 +59,7 @@ Pendente
 
 ## 🛠️ Configuração Local
 
-Para rodar este projeto localmente, siga os passos:
+Para rodar este projeto localmente, siga os passos :
 
 1.  **Pré-requisitos:**
     * Git
