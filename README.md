@@ -17,6 +17,9 @@ Os usuários podem se cadastrar, postar suas ideias, comentar, e avaliar as idei
 - Usuário Comum --> email: teste@gmail.com | senha: teste
 - ADMIN --> email: admin@gmail.com | senha: admin
 
+
+
+
 ## ☁️ Deploy no Heroku
 
 ### O projeto está deployado no Heroku:
@@ -28,7 +31,7 @@ https://nebulohub-167cb8a40423.herokuapp.com/
 https://github.com/NebuloHub/Java
 
 ### Link do Vídeo Explicativo:
-Pendente
+https://youtu.be/mToSQO0YfHU
 
 ### Link do Pitch:
 Pendente
@@ -84,6 +87,12 @@ Para rodar este projeto localmente, siga os passos :
 
 IMPORTANTE:
 Se ao executar o projeto, o IntelliJ cuspir o erro "java: cannot find symbol", vá em File -> Settings (atalho CTRL + ALT + S) -> Build, Execution, Deployment -> Compiler -> Annotation Processors -> Selecione "nebulohub" - > Marque a opção "Obtain processors from project classpath" ao invés de "Processor path:"
+
+(Instância local do RabbitMQ foi criado com Docker, username 'guest' e senha 'guest':
+```
+docker run -d --name nebulohub-rabbitmq -p 5672:5672 -p 15672:15672 rabbitmq:3-management
+```
+)
 
 4. **Acessar:**
     * **Aplicação Web:** `http://localhost:8080`
