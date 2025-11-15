@@ -1,0 +1,1 @@
+web: java -jar target/nebulohub-1.0.jar
