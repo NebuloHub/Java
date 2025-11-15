@@ -19,7 +19,6 @@ Os usuários podem se cadastrar, postar suas ideias, comentar, e avaliar as idei
 
 https://nebulohub-167cb8a40423.herokuapp.com/
 
---- 
 
 ### Link do Repositório Github: 
 https://github.com/NebuloHub/Java
