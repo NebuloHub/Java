@@ -34,7 +34,7 @@ https://github.com/NebuloHub/Java
 https://youtu.be/mToSQO0YfHU
 
 ### Link do Pitch:
-Pendente
+https://youtu.be/MXidFLToZn8
 
 ---
 
