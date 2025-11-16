@@ -1,0 +1,7 @@
+- Repo Github (Código Fonte):  https://github.com/NebuloHub/Java
+
+- Link DEPLOY: https://nebulohub-167cb8a40423.herokuapp.com/
+
+- Link do Vídeo Explicativo/Demonstrativo: https://youtu.be/mToSQO0YfHU
+
+- Link do Pitch:https://youtu.be/MXidFLToZn8
